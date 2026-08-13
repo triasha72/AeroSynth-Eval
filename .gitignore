@@ -1,0 +1,16 @@
+.DS_Store
+.env
+.venv/
+.vscode/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+build/
+dist/
+*.egg-info/
+
+data/raw/
+data/interim/
+data/processed/
