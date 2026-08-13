@@ -9,12 +9,18 @@ from typing import Annotated, Any
 import typer
 
 from aerosynth_eval import __version__
-from aerosynth_eval.asset_registry import load_and_validate_asset_registry
+from aerosynth_eval.asset_registry import (
+    load_and_validate_asset_registry,
+    load_and_validate_materialized_corpus,
+)
 from aerosynth_eval.dataset import load_manifest, summarize_manifest
+from aerosynth_eval.procedural_corpus import materialize_procedural_corpus
 from aerosynth_eval.rubric import inspection_rubric
 from aerosynth_eval.scenario_matrix import load_scenario_matrix, validate_scenario_matrix
 
 DEFAULT_SCENARIO_MATRIX = Path("data/design/v0_1_scenario_matrix.csv")
+DEFAULT_ASSET_REGISTRY = Path("data/registry/v0_1_asset_registry.jsonl")
+DEFAULT_ASSET_ROOT = Path("data")
 
 app = typer.Typer(
     add_completion=False,
@@ -34,7 +40,7 @@ def info() -> None:
         {
             "project": "AeroSynth-Eval",
             "version": __version__,
-            "status": "corpus_provenance_foundation",
+            "status": "procedural_corpus",
             "scope": "Synthetic aerospace inspection-image evaluation",
         }
     )
@@ -130,6 +136,105 @@ def validate_asset_registry_command(
         {
             "asset_registry": str(registry),
             "scenario_matrix": str(scenario_matrix),
+            **summary.model_dump(mode="json"),
+        }
+    )
+
+
+@app.command(name="materialize-procedural-corpus")
+def materialize_procedural_corpus_command(
+    registry: Annotated[
+        Path,
+        typer.Option(
+            "--registry",
+            help="Path to the JSON Lines synthetic-image asset registry to update.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ] = DEFAULT_ASSET_REGISTRY,
+    scenario_matrix: Annotated[
+        Path,
+        typer.Option(
+            "--scenario-matrix",
+            help="Path to the frozen CSV scenario matrix.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ] = DEFAULT_SCENARIO_MATRIX,
+    asset_root: Annotated[
+        Path,
+        typer.Option(
+            "--asset-root",
+            help="Directory that contains the registry's assets/v0_1 paths.",
+            file_okay=False,
+            dir_okay=True,
+        ),
+    ] = DEFAULT_ASSET_ROOT,
+) -> None:
+    """Render all planned v0.1 assets with the deterministic procedural baseline."""
+
+    try:
+        summary = materialize_procedural_corpus(registry, scenario_matrix, asset_root)
+    except ValueError as error:
+        raise typer.BadParameter(str(error), param_hint="registry") from error
+    _emit(summary.model_dump(mode="json"))
+
+
+@app.command(name="validate-materialized-corpus")
+def validate_materialized_corpus_command(
+    registry: Annotated[
+        Path,
+        typer.Option(
+            "--registry",
+            help="Path to the JSON Lines generated-asset registry.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ] = DEFAULT_ASSET_REGISTRY,
+    scenario_matrix: Annotated[
+        Path,
+        typer.Option(
+            "--scenario-matrix",
+            help="Path to the frozen CSV scenario matrix.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ] = DEFAULT_SCENARIO_MATRIX,
+    asset_root: Annotated[
+        Path,
+        typer.Option(
+            "--asset-root",
+            help="Directory that contains the registry's assets/v0_1 paths.",
+            exists=True,
+            file_okay=False,
+            dir_okay=True,
+            readable=True,
+        ),
+    ] = DEFAULT_ASSET_ROOT,
+) -> None:
+    """Verify all bundled generated assets against their frozen provenance."""
+
+    try:
+        summary = load_and_validate_materialized_corpus(
+            registry,
+            scenario_matrix,
+            asset_root,
+        )
+    except ValueError as error:
+        raise typer.BadParameter(str(error), param_hint="registry") from error
+    _emit(
+        {
+            "asset_registry": str(registry),
+            "scenario_matrix": str(scenario_matrix),
+            "asset_root": str(asset_root),
             **summary.model_dump(mode="json"),
         }
     )

@@ -60,4 +60,5 @@ def test_validate_asset_registry_command_returns_summary() -> None:
     assert result.exit_code == 0
     payload = json.loads(result.stdout)
     assert payload["record_count"] == 48
-    assert payload["lifecycle_statuses"]["planned"] == 48
+    assert payload["lifecycle_statuses"]["generated"] == 48
+    assert payload["records_with_generation_evidence"] == 48

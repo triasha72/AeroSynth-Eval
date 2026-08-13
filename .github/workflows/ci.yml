@@ -46,3 +46,6 @@ jobs:
 
       - name: Validate synthetic-asset provenance
         run: aerosynth-eval validate-asset-registry data/registry/v0_1_asset_registry.jsonl
+
+      - name: Validate materialized procedural corpus
+        run: aerosynth-eval validate-materialized-corpus
