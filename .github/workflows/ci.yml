@@ -49,3 +49,6 @@ jobs:
 
       - name: Validate materialized procedural corpus
         run: aerosynth-eval validate-materialized-corpus
+
+      - name: Validate development annotation queue
+        run: aerosynth-eval validate-annotation-queue data/annotations/v0_1_development_annotation_queue.csv

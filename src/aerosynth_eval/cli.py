@@ -9,6 +9,10 @@ from typing import Annotated, Any
 import typer
 
 from aerosynth_eval import __version__
+from aerosynth_eval.annotations import (
+    load_and_validate_annotation_queue,
+    load_and_validate_rater_annotations,
+)
 from aerosynth_eval.asset_registry import (
     load_and_validate_asset_registry,
     load_and_validate_materialized_corpus,
@@ -21,6 +25,7 @@ from aerosynth_eval.scenario_matrix import load_scenario_matrix, validate_scenar
 DEFAULT_SCENARIO_MATRIX = Path("data/design/v0_1_scenario_matrix.csv")
 DEFAULT_ASSET_REGISTRY = Path("data/registry/v0_1_asset_registry.jsonl")
 DEFAULT_ASSET_ROOT = Path("data")
+DEFAULT_ANNOTATION_QUEUE = Path("data/annotations/v0_1_development_annotation_queue.csv")
 
 app = typer.Typer(
     add_completion=False,
@@ -40,7 +45,7 @@ def info() -> None:
         {
             "project": "AeroSynth-Eval",
             "version": __version__,
-            "status": "procedural_corpus",
+            "status": "human_labeling_protocol",
             "scope": "Synthetic aerospace inspection-image evaluation",
         }
     )
@@ -136,6 +141,123 @@ def validate_asset_registry_command(
         {
             "asset_registry": str(registry),
             "scenario_matrix": str(scenario_matrix),
+            **summary.model_dump(mode="json"),
+        }
+    )
+
+
+@app.command(name="validate-annotation-queue")
+def validate_annotation_queue_command(
+    queue: Annotated[
+        Path,
+        typer.Argument(
+            help="Path to the development-only human-annotation queue CSV.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ],
+    registry: Annotated[
+        Path,
+        typer.Option(
+            "--registry",
+            help="Path to the JSON Lines synthetic-image asset registry.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ] = DEFAULT_ASSET_REGISTRY,
+    scenario_matrix: Annotated[
+        Path,
+        typer.Option(
+            "--scenario-matrix",
+            help="Path to the frozen CSV scenario matrix.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ] = DEFAULT_SCENARIO_MATRIX,
+) -> None:
+    """Validate a balanced development-only queue before human rating begins."""
+
+    try:
+        summary = load_and_validate_annotation_queue(queue, registry, scenario_matrix)
+    except ValueError as error:
+        raise typer.BadParameter(str(error), param_hint="queue") from error
+    _emit(
+        {
+            "annotation_queue": str(queue),
+            "asset_registry": str(registry),
+            "scenario_matrix": str(scenario_matrix),
+            **summary.model_dump(mode="json"),
+        }
+    )
+
+
+@app.command(name="validate-rater-annotations")
+def validate_rater_annotations_command(
+    annotations: Annotated[
+        Path,
+        typer.Argument(
+            help="Path to a complete pseudonymous rater-annotation CSV submission.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ],
+    queue: Annotated[
+        Path,
+        typer.Option(
+            "--queue",
+            help="Path to the approved development-only annotation queue.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ] = DEFAULT_ANNOTATION_QUEUE,
+    registry: Annotated[
+        Path,
+        typer.Option(
+            "--registry",
+            help="Path to the JSON Lines synthetic-image asset registry.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ] = DEFAULT_ASSET_REGISTRY,
+    scenario_matrix: Annotated[
+        Path,
+        typer.Option(
+            "--scenario-matrix",
+            help="Path to the frozen CSV scenario matrix.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ] = DEFAULT_SCENARIO_MATRIX,
+) -> None:
+    """Validate one or more complete human-rater submissions without scoring agreement."""
+
+    try:
+        summary = load_and_validate_rater_annotations(
+            annotations,
+            queue,
+            registry,
+            scenario_matrix,
+        )
+    except ValueError as error:
+        raise typer.BadParameter(str(error), param_hint="annotations") from error
+    _emit(
+        {
+            "rater_annotations": str(annotations),
+            "annotation_queue": str(queue),
             **summary.model_dump(mode="json"),
         }
     )

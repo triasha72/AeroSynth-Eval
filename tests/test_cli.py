@@ -10,6 +10,9 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_PATH = PROJECT_ROOT / "data" / "examples" / "v0_1_manifest.jsonl"
 MATRIX_PATH = PROJECT_ROOT / "data" / "design" / "v0_1_scenario_matrix.csv"
 REGISTRY_PATH = PROJECT_ROOT / "data" / "registry" / "v0_1_asset_registry.jsonl"
+ANNOTATION_QUEUE_PATH = (
+    PROJECT_ROOT / "data" / "annotations" / "v0_1_development_annotation_queue.csv"
+)
 
 
 def test_info_command() -> None:
@@ -62,3 +65,18 @@ def test_validate_asset_registry_command_returns_summary() -> None:
     assert payload["record_count"] == 48
     assert payload["lifecycle_statuses"]["generated"] == 48
     assert payload["records_with_generation_evidence"] == 48
+
+
+def test_validate_annotation_queue_command_returns_summary() -> None:
+    result = runner.invoke(app, ["validate-annotation-queue", str(ANNOTATION_QUEUE_PATH)])
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert payload["record_count"] == 12
+    assert payload["split"] == "development"
+    assert payload["capture_profiles"] == {
+        "close_diffuse": 3,
+        "close_glare": 3,
+        "oblique_blur": 3,
+        "oblique_directional": 3,
+    }
