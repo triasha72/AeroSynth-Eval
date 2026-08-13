@@ -9,9 +9,12 @@ from typing import Annotated, Any
 import typer
 
 from aerosynth_eval import __version__
+from aerosynth_eval.asset_registry import load_and_validate_asset_registry
 from aerosynth_eval.dataset import load_manifest, summarize_manifest
 from aerosynth_eval.rubric import inspection_rubric
 from aerosynth_eval.scenario_matrix import load_scenario_matrix, validate_scenario_matrix
+
+DEFAULT_SCENARIO_MATRIX = Path("data/design/v0_1_scenario_matrix.csv")
 
 app = typer.Typer(
     add_completion=False,
@@ -31,7 +34,7 @@ def info() -> None:
         {
             "project": "AeroSynth-Eval",
             "version": __version__,
-            "status": "scenario_design",
+            "status": "corpus_provenance_foundation",
             "scope": "Synthetic aerospace inspection-image evaluation",
         }
     )
@@ -90,3 +93,43 @@ def validate_scenario_matrix_command(
         raise typer.BadParameter(str(error), param_hint="matrix") from error
 
     _emit({"scenario_matrix": str(matrix), **summary.model_dump(mode="json")})
+
+
+@app.command(name="validate-asset-registry")
+def validate_asset_registry_command(
+    registry: Annotated[
+        Path,
+        typer.Argument(
+            help="Path to a JSON Lines synthetic-image asset registry.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ],
+    scenario_matrix: Annotated[
+        Path,
+        typer.Option(
+            "--scenario-matrix",
+            help="Path to the frozen CSV scenario matrix.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ] = DEFAULT_SCENARIO_MATRIX,
+) -> None:
+    """Validate synthetic-asset provenance against the frozen scenario design."""
+
+    try:
+        summary = load_and_validate_asset_registry(registry, scenario_matrix)
+    except ValueError as error:
+        raise typer.BadParameter(str(error), param_hint="registry") from error
+
+    _emit(
+        {
+            "asset_registry": str(registry),
+            "scenario_matrix": str(scenario_matrix),
+            **summary.model_dump(mode="json"),
+        }
+    )

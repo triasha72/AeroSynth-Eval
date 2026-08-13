@@ -9,6 +9,7 @@ runner = CliRunner()
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_PATH = PROJECT_ROOT / "data" / "examples" / "v0_1_manifest.jsonl"
 MATRIX_PATH = PROJECT_ROOT / "data" / "design" / "v0_1_scenario_matrix.csv"
+REGISTRY_PATH = PROJECT_ROOT / "data" / "registry" / "v0_1_asset_registry.jsonl"
 
 
 def test_info_command() -> None:
@@ -43,3 +44,20 @@ def test_validate_scenario_matrix_command_returns_summary() -> None:
     assert payload["record_count"] == 48
     assert payload["splits"]["development"] == 36
     assert payload["splits"]["test"] == 12
+
+
+def test_validate_asset_registry_command_returns_summary() -> None:
+    result = runner.invoke(
+        app,
+        [
+            "validate-asset-registry",
+            str(REGISTRY_PATH),
+            "--scenario-matrix",
+            str(MATRIX_PATH),
+        ],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert payload["record_count"] == 48
+    assert payload["lifecycle_statuses"]["planned"] == 48
