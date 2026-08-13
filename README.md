@@ -31,19 +31,20 @@ research dataset quality review and must not replace qualified human inspection.
 
 ## Current status
 
-v0.5 materializes the frozen 48-scenario design as a reproducible procedural
-visual baseline. Every bundled PNG is rendered locally from a deterministic seed
-and is verified against a recorded SHA-256 digest. These are deliberately simple
-synthetic test assets—not operational inspection imagery, physical simulations, or
-evidence of VLM evaluation accuracy, human agreement, calibration, or fine-tuning.
+v0.6 adds a development-only human-annotation protocol to the reproducible
+48-scenario procedural corpus. The bundled 12-image calibration queue has no
+scores or consensus labels; it defines a controlled path for collecting
+independent human ratings before any VLM evaluator is tuned or compared with
+people. The assets remain deliberately simple synthetic test images—not
+operational inspection imagery, physical simulations, or evidence of VLM
+evaluation accuracy, human agreement, calibration, or fine-tuning.
 
 ## Benchmark foundation
 
 The bundled manifest at `data/examples/v0_1_manifest.jsonl` contains six synthetic
 scenario records: four development examples and two held-out test examples. It is
-intentionally metadata-only—no image assets or labels are distributed yet. This
-separates data-contract validation from future image generation and human-rating
-work.
+intentionally metadata-only, separate from the procedural PNG corpus and future
+human-rating data.
 
 Read [the dataset card](docs/DATASET_CARD.md) and
 [the annotation guide](docs/ANNOTATION_GUIDE.md) before adding benchmark data.
@@ -64,6 +65,15 @@ specification, seed, UTC timestamp, and SHA-256 digest. Read
 [the image-generation protocol](docs/IMAGE_GENERATION_PROTOCOL.md) before producing
 or reviewing imagery.
 
+## Human annotation protocol
+
+The development-only queue at
+`data/annotations/v0_1_development_annotation_queue.csv` selects 12 balanced
+generated assets for independent human rating. It intentionally excludes all
+protected test assets and includes no labels or agreement results. Read
+[the human-annotation protocol](docs/HUMAN_ANNOTATION_PROTOCOL.md) before
+collecting or validating any response files.
+
 ## Development
 
 ```bash
@@ -81,7 +91,10 @@ aerosynth-eval validate-manifest data/examples/v0_1_manifest.jsonl
 aerosynth-eval validate-scenario-matrix data/design/v0_1_scenario_matrix.csv
 aerosynth-eval validate-asset-registry data/registry/v0_1_asset_registry.jsonl
 aerosynth-eval validate-materialized-corpus
+aerosynth-eval validate-annotation-queue \
+  data/annotations/v0_1_development_annotation_queue.csv
 ```
 
-GitHub Actions runs formatting, linting, type checking, tests, and manifest
-validation for pushes and pull requests targeting `main`.
+GitHub Actions runs formatting, linting, type checking, tests, and validation of
+the bundled manifest, scenario design, provenance, materialized corpus, and
+development annotation queue for pushes and pull requests targeting `main`.

@@ -1,0 +1,13 @@
+queue_id,asset_id,scenario_id,split,image_reference,component,condition,capture_profile,quality_challenge,rubric_version
+v0_1_development_calibration,asset-fuselage-clean-oblique-directional,fuselage-clean-oblique-directional,development,assets/v0_1/fuselage-clean-oblique-directional.png,fuselage_panel,no_visible_defect,oblique_directional,none,v0.1
+v0_1_development_calibration,asset-fuselage-corrosion-close-diffuse,fuselage-corrosion-close-diffuse,development,assets/v0_1/fuselage-corrosion-close-diffuse.png,fuselage_panel,corrosion,close_diffuse,none,v0.1
+v0_1_development_calibration,asset-fuselage-crack-oblique-blur,fuselage-crack-oblique-blur,development,assets/v0_1/fuselage-crack-oblique-blur.png,fuselage_panel,surface_crack,oblique_blur,mild_motion_blur,v0.1
+v0_1_development_calibration,asset-fuselage-coating-close-glare,fuselage-coating-close-glare,development,assets/v0_1/fuselage-coating-close-glare.png,fuselage_panel,coating_damage,close_glare,mild_glare,v0.1
+v0_1_development_calibration,asset-wing-clean-close-glare,wing-clean-close-glare,development,assets/v0_1/wing-clean-close-glare.png,wing_panel,no_visible_defect,close_glare,mild_glare,v0.1
+v0_1_development_calibration,asset-wing-corrosion-oblique-directional,wing-corrosion-oblique-directional,development,assets/v0_1/wing-corrosion-oblique-directional.png,wing_panel,corrosion,oblique_directional,none,v0.1
+v0_1_development_calibration,asset-wing-crack-close-diffuse,wing-crack-close-diffuse,development,assets/v0_1/wing-crack-close-diffuse.png,wing_panel,surface_crack,close_diffuse,none,v0.1
+v0_1_development_calibration,asset-wing-coating-oblique-blur,wing-coating-oblique-blur,development,assets/v0_1/wing-coating-oblique-blur.png,wing_panel,coating_damage,oblique_blur,mild_motion_blur,v0.1
+v0_1_development_calibration,asset-empennage-clean-close-diffuse,empennage-clean-close-diffuse,development,assets/v0_1/empennage-clean-close-diffuse.png,empennage_panel,no_visible_defect,close_diffuse,none,v0.1
+v0_1_development_calibration,asset-empennage-corrosion-close-glare,empennage-corrosion-close-glare,development,assets/v0_1/empennage-corrosion-close-glare.png,empennage_panel,corrosion,close_glare,mild_glare,v0.1
+v0_1_development_calibration,asset-empennage-crack-oblique-directional,empennage-crack-oblique-directional,development,assets/v0_1/empennage-crack-oblique-directional.png,empennage_panel,surface_crack,oblique_directional,none,v0.1
+v0_1_development_calibration,asset-empennage-coating-oblique-blur,empennage-coating-oblique-blur,development,assets/v0_1/empennage-coating-oblique-blur.png,empennage_panel,coating_damage,oblique_blur,mild_motion_blur,v0.1

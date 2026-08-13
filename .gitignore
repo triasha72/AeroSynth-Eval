@@ -14,3 +14,4 @@ dist/
 data/raw/
 data/interim/
 data/processed/
+data/annotations/private/
