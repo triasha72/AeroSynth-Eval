@@ -1,0 +1,49 @@
+scenario_id,split,component,condition,capture_profile,viewpoint,lighting,quality_challenge,expected_evidence_visibility,design_note
+fuselage-clean-close-diffuse,test,fuselage_panel,no_visible_defect,close_diffuse,close inspection view,diffuse daylight,none,clear,Control scenario with an intact fuselage surface.
+fuselage-clean-oblique-directional,development,fuselage_panel,no_visible_defect,oblique_directional,oblique inspection view,directional daylight,none,clear,Control scenario with oblique context.
+fuselage-clean-close-glare,development,fuselage_panel,no_visible_defect,close_glare,close inspection view,directional daylight,mild_glare,partially_obscured,Glare challenge without a requested defect.
+fuselage-clean-oblique-blur,development,fuselage_panel,no_visible_defect,oblique_blur,oblique inspection view,overcast daylight,mild_motion_blur,partially_obscured,Blur challenge without a requested defect.
+fuselage-corrosion-close-diffuse,development,fuselage_panel,corrosion,close_diffuse,close inspection view,diffuse daylight,none,clear,Control corrosion scenario.
+fuselage-corrosion-oblique-directional,test,fuselage_panel,corrosion,oblique_directional,oblique inspection view,directional daylight,none,clear,Held-out corrosion context variation.
+fuselage-corrosion-close-glare,development,fuselage_panel,corrosion,close_glare,close inspection view,directional daylight,mild_glare,partially_obscured,Glare challenge for corrosion evidence.
+fuselage-corrosion-oblique-blur,development,fuselage_panel,corrosion,oblique_blur,oblique inspection view,overcast daylight,mild_motion_blur,partially_obscured,Blur challenge for corrosion evidence.
+fuselage-crack-close-diffuse,development,fuselage_panel,surface_crack,close_diffuse,close inspection view,diffuse daylight,none,clear,Control surface-crack scenario.
+fuselage-crack-oblique-directional,development,fuselage_panel,surface_crack,oblique_directional,oblique inspection view,directional daylight,none,clear,Oblique surface-crack context variation.
+fuselage-crack-close-glare,test,fuselage_panel,surface_crack,close_glare,close inspection view,directional daylight,mild_glare,partially_obscured,Held-out glare challenge for crack evidence.
+fuselage-crack-oblique-blur,development,fuselage_panel,surface_crack,oblique_blur,oblique inspection view,overcast daylight,mild_motion_blur,partially_obscured,Blur challenge for crack evidence.
+fuselage-coating-close-diffuse,development,fuselage_panel,coating_damage,close_diffuse,close inspection view,diffuse daylight,none,clear,Control coating-damage scenario.
+fuselage-coating-oblique-directional,development,fuselage_panel,coating_damage,oblique_directional,oblique inspection view,directional daylight,none,clear,Oblique coating-damage context variation.
+fuselage-coating-close-glare,development,fuselage_panel,coating_damage,close_glare,close inspection view,directional daylight,mild_glare,partially_obscured,Glare challenge for coating evidence.
+fuselage-coating-oblique-blur,test,fuselage_panel,coating_damage,oblique_blur,oblique inspection view,overcast daylight,mild_motion_blur,partially_obscured,Held-out blur challenge for coating evidence.
+wing-clean-close-diffuse,development,wing_panel,no_visible_defect,close_diffuse,close inspection view,diffuse daylight,none,clear,Control scenario with an intact wing surface.
+wing-clean-oblique-directional,test,wing_panel,no_visible_defect,oblique_directional,oblique inspection view,directional daylight,none,clear,Held-out oblique context variation.
+wing-clean-close-glare,development,wing_panel,no_visible_defect,close_glare,close inspection view,directional daylight,mild_glare,partially_obscured,Glare challenge without a requested defect.
+wing-clean-oblique-blur,development,wing_panel,no_visible_defect,oblique_blur,oblique inspection view,overcast daylight,mild_motion_blur,partially_obscured,Blur challenge without a requested defect.
+wing-corrosion-close-diffuse,development,wing_panel,corrosion,close_diffuse,close inspection view,diffuse daylight,none,clear,Control corrosion scenario.
+wing-corrosion-oblique-directional,development,wing_panel,corrosion,oblique_directional,oblique inspection view,directional daylight,none,clear,Oblique corrosion context variation.
+wing-corrosion-close-glare,test,wing_panel,corrosion,close_glare,close inspection view,directional daylight,mild_glare,partially_obscured,Held-out glare challenge for corrosion evidence.
+wing-corrosion-oblique-blur,development,wing_panel,corrosion,oblique_blur,oblique inspection view,overcast daylight,mild_motion_blur,partially_obscured,Blur challenge for corrosion evidence.
+wing-crack-close-diffuse,development,wing_panel,surface_crack,close_diffuse,close inspection view,diffuse daylight,none,clear,Control surface-crack scenario.
+wing-crack-oblique-directional,development,wing_panel,surface_crack,oblique_directional,oblique inspection view,directional daylight,none,clear,Oblique surface-crack context variation.
+wing-crack-close-glare,development,wing_panel,surface_crack,close_glare,close inspection view,directional daylight,mild_glare,partially_obscured,Glare challenge for crack evidence.
+wing-crack-oblique-blur,test,wing_panel,surface_crack,oblique_blur,oblique inspection view,overcast daylight,mild_motion_blur,partially_obscured,Held-out blur challenge for crack evidence.
+wing-coating-close-diffuse,test,wing_panel,coating_damage,close_diffuse,close inspection view,diffuse daylight,none,clear,Held-out control coating-damage scenario.
+wing-coating-oblique-directional,development,wing_panel,coating_damage,oblique_directional,oblique inspection view,directional daylight,none,clear,Oblique coating-damage context variation.
+wing-coating-close-glare,development,wing_panel,coating_damage,close_glare,close inspection view,directional daylight,mild_glare,partially_obscured,Glare challenge for coating evidence.
+wing-coating-oblique-blur,development,wing_panel,coating_damage,oblique_blur,oblique inspection view,overcast daylight,mild_motion_blur,partially_obscured,Blur challenge for coating evidence.
+empennage-clean-close-diffuse,development,empennage_panel,no_visible_defect,close_diffuse,close inspection view,diffuse daylight,none,clear,Control scenario with an intact empennage surface.
+empennage-clean-oblique-directional,development,empennage_panel,no_visible_defect,oblique_directional,oblique inspection view,directional daylight,none,clear,Oblique intact-surface context variation.
+empennage-clean-close-glare,test,empennage_panel,no_visible_defect,close_glare,close inspection view,directional daylight,mild_glare,partially_obscured,Held-out glare challenge without a requested defect.
+empennage-clean-oblique-blur,development,empennage_panel,no_visible_defect,oblique_blur,oblique inspection view,overcast daylight,mild_motion_blur,partially_obscured,Blur challenge without a requested defect.
+empennage-corrosion-close-diffuse,development,empennage_panel,corrosion,close_diffuse,close inspection view,diffuse daylight,none,clear,Control corrosion scenario.
+empennage-corrosion-oblique-directional,development,empennage_panel,corrosion,oblique_directional,oblique inspection view,directional daylight,none,clear,Oblique corrosion context variation.
+empennage-corrosion-close-glare,development,empennage_panel,corrosion,close_glare,close inspection view,directional daylight,mild_glare,partially_obscured,Glare challenge for corrosion evidence.
+empennage-corrosion-oblique-blur,test,empennage_panel,corrosion,oblique_blur,oblique inspection view,overcast daylight,mild_motion_blur,partially_obscured,Held-out blur challenge for corrosion evidence.
+empennage-crack-close-diffuse,test,empennage_panel,surface_crack,close_diffuse,close inspection view,diffuse daylight,none,clear,Held-out control surface-crack scenario.
+empennage-crack-oblique-directional,development,empennage_panel,surface_crack,oblique_directional,oblique inspection view,directional daylight,none,clear,Oblique surface-crack context variation.
+empennage-crack-close-glare,development,empennage_panel,surface_crack,close_glare,close inspection view,directional daylight,mild_glare,partially_obscured,Glare challenge for crack evidence.
+empennage-crack-oblique-blur,development,empennage_panel,surface_crack,oblique_blur,oblique inspection view,overcast daylight,mild_motion_blur,partially_obscured,Blur challenge for crack evidence.
+empennage-coating-close-diffuse,development,empennage_panel,coating_damage,close_diffuse,close inspection view,diffuse daylight,none,clear,Control coating-damage scenario.
+empennage-coating-oblique-directional,test,empennage_panel,coating_damage,oblique_directional,oblique inspection view,directional daylight,none,clear,Held-out oblique coating-damage context variation.
+empennage-coating-close-glare,development,empennage_panel,coating_damage,close_glare,close inspection view,directional daylight,mild_glare,partially_obscured,Glare challenge for coating evidence.
+empennage-coating-oblique-blur,development,empennage_panel,coating_damage,oblique_blur,oblique inspection view,overcast daylight,mild_motion_blur,partially_obscured,Blur challenge for coating evidence.
