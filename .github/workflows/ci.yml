@@ -40,3 +40,6 @@ jobs:
 
       - name: Validate bundled manifest
         run: aerosynth-eval validate-manifest data/examples/v0_1_manifest.jsonl
+
+      - name: Validate scenario design
+        run: aerosynth-eval validate-scenario-matrix data/design/v0_1_scenario_matrix.csv
