@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import json
-from typing import Any
+from pathlib import Path
+from typing import Annotated, Any
 
 import typer
 
 from aerosynth_eval import __version__
+from aerosynth_eval.dataset import load_manifest, summarize_manifest
 from aerosynth_eval.rubric import inspection_rubric
 
 app = typer.Typer(
@@ -28,7 +30,7 @@ def info() -> None:
         {
             "project": "AeroSynth-Eval",
             "version": __version__,
-            "status": "foundation",
+            "status": "benchmark_foundation",
             "scope": "Synthetic aerospace inspection-image evaluation",
         }
     )
@@ -39,3 +41,27 @@ def rubric() -> None:
     """Print the fixed v0.1 inspection rubric."""
 
     _emit(inspection_rubric().model_dump(mode="json"))
+
+
+@app.command(name="validate-manifest")
+def validate_manifest(
+    manifest: Annotated[
+        Path,
+        typer.Argument(
+            help="Path to a JSON Lines evaluation manifest.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ],
+) -> None:
+    """Validate a versioned evaluation manifest and print its summary."""
+
+    try:
+        records = load_manifest(manifest)
+    except ValueError as error:
+        raise typer.BadParameter(str(error), param_hint="manifest") from error
+
+    summary = summarize_manifest(records)
+    _emit({"manifest": str(manifest), **summary.model_dump(mode="json")})

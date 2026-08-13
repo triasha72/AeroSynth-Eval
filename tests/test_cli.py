@@ -1,10 +1,13 @@
 import json
+from pathlib import Path
 
 from typer.testing import CliRunner
 
 from aerosynth_eval.cli import app
 
 runner = CliRunner()
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+MANIFEST_PATH = PROJECT_ROOT / "data" / "examples" / "v0_1_manifest.jsonl"
 
 
 def test_info_command() -> None:
@@ -19,3 +22,13 @@ def test_rubric_command_returns_four_dimensions() -> None:
 
     assert result.exit_code == 0
     assert len(json.loads(result.stdout)["dimensions"]) == 4
+
+
+def test_validate_manifest_command_returns_summary() -> None:
+    result = runner.invoke(app, ["validate-manifest", str(MANIFEST_PATH)])
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert payload["record_count"] == 6
+    assert payload["splits"]["development"] == 4
+    assert payload["splits"]["test"] == 2
