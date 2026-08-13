@@ -31,11 +31,11 @@ research dataset quality review and must not replace qualified human inspection.
 
 ## Current status
 
-v0.3 freezes a balanced scenario design before image generation or model work.
-It adds a protected 36/12 development/test split across aircraft regions, requested
-surface conditions, lighting/viewpoint profiles, and controlled quality challenges.
-It does not claim VLM evaluation accuracy, human agreement, calibration, or
-fine-tuning results.
+v0.4 adds a versioned, one-to-one synthetic-asset registry before image generation.
+It reserves one canonical image path for every frozen scenario and requires complete
+generator, prompt, seed, timestamp, and checksum evidence once an image exists. It
+does not distribute image assets or claim VLM evaluation accuracy, human agreement,
+calibration, or fine-tuning results.
 
 ## Benchmark foundation
 
@@ -55,6 +55,14 @@ metadata-only scenarios. Each aircraft-region/condition combination has four
 capture profiles and exactly one protected test scenario. Read
 [the scenario-design note](docs/SCENARIO_DESIGN.md) before generating any imagery.
 
+## Corpus provenance foundation
+
+The registry at `data/registry/v0_1_asset_registry.jsonl` reserves 48 synthetic
+asset records—one for every frozen scenario. All records are currently `planned`;
+no generator has been selected and no image asset is distributed. Read
+[the image-generation protocol](docs/IMAGE_GENERATION_PROTOCOL.md) before producing
+or reviewing imagery.
+
 ## Development
 
 ```bash
@@ -70,6 +78,7 @@ aerosynth-eval info
 aerosynth-eval rubric
 aerosynth-eval validate-manifest data/examples/v0_1_manifest.jsonl
 aerosynth-eval validate-scenario-matrix data/design/v0_1_scenario_matrix.csv
+aerosynth-eval validate-asset-registry data/registry/v0_1_asset_registry.jsonl
 ```
 
 GitHub Actions runs formatting, linting, type checking, tests, and manifest

@@ -65,6 +65,14 @@ class AnnotationStatus(StrEnum):
     ADJUDICATED = "adjudicated"
 
 
+class AssetLifecycleStatus(StrEnum):
+    """Lifecycle state for a synthetic image asset in the registry."""
+
+    PLANNED = "planned"
+    GENERATED = "generated"
+    REJECTED = "rejected"
+
+
 class InspectionSpecification(BaseModel):
     """Expected properties of one synthetic inspection image."""
 

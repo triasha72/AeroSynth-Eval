@@ -43,3 +43,6 @@ jobs:
 
       - name: Validate scenario design
         run: aerosynth-eval validate-scenario-matrix data/design/v0_1_scenario_matrix.csv
+
+      - name: Validate synthetic-asset provenance
+        run: aerosynth-eval validate-asset-registry data/registry/v0_1_asset_registry.jsonl
