@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from datetime import datetime
 from pathlib import Path
@@ -79,6 +80,17 @@ class AssetRegistrySummary(BaseModel):
     records_with_generation_evidence: int = Field(ge=0)
 
 
+class MaterializedAssetSummary(BaseModel):
+    """Integrity summary for a fully materialized synthetic image corpus."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    record_count: int = Field(ge=1)
+    generated_assets: int = Field(ge=1)
+    sha256_verified_assets: int = Field(ge=1)
+    total_image_bytes: int = Field(ge=1)
+
+
 def load_asset_registry(path: Path) -> tuple[AssetRegistryRecord, ...]:
     """Load a JSON Lines asset registry and reject duplicate identities."""
 
@@ -117,6 +129,20 @@ def load_asset_registry(path: Path) -> tuple[AssetRegistryRecord, ...]:
     if not records:
         raise ValueError(f"{path}: asset registry contains no records.")
     return tuple(records)
+
+
+def write_asset_registry(path: Path, records: tuple[AssetRegistryRecord, ...]) -> None:
+    """Write validated registry records as deterministic JSON Lines."""
+
+    if not records:
+        raise ValueError("Cannot write an empty asset registry.")
+    serialized = "\n".join(
+        json.dumps(record.model_dump(mode="json"), separators=(",", ":")) for record in records
+    )
+    try:
+        path.write_text(f"{serialized}\n", encoding="utf-8")
+    except OSError as error:
+        raise ValueError(f"Could not write asset registry at {path}.") from error
 
 
 def summarize_asset_registry(
@@ -193,3 +219,57 @@ def load_and_validate_asset_registry(
         load_asset_registry(registry_path),
         load_scenario_matrix(scenario_matrix_path),
     )
+
+
+def validate_materialized_assets(
+    records: tuple[AssetRegistryRecord, ...],
+    asset_root: Path,
+) -> MaterializedAssetSummary:
+    """Verify every generated image exists and matches its recorded SHA-256 digest."""
+
+    not_generated = [
+        record.asset_id
+        for record in records
+        if record.lifecycle_status is not AssetLifecycleStatus.GENERATED
+    ]
+    if not_generated:
+        raise ValueError(
+            "Materialized corpus requires every record to be generated; "
+            f"found non-generated assets: {', '.join(not_generated)}."
+        )
+
+    total_image_bytes = 0
+    for record in records:
+        asset_path = asset_root / record.image_reference
+        try:
+            image_bytes = asset_path.read_bytes()
+        except OSError as error:
+            raise ValueError(f"Missing generated asset '{asset_path}'.") from error
+        if not image_bytes.startswith(b"\x89PNG\r\n\x1a\n"):
+            raise ValueError(f"Generated asset '{asset_path}' is not a PNG file.")
+        digest = hashlib.sha256(image_bytes).hexdigest()
+        if digest != record.image_sha256:
+            raise ValueError(
+                f"Generated asset '{asset_path}' does not match its recorded SHA-256 digest."
+            )
+        total_image_bytes += len(image_bytes)
+
+    return MaterializedAssetSummary(
+        record_count=len(records),
+        generated_assets=len(records),
+        sha256_verified_assets=len(records),
+        total_image_bytes=total_image_bytes,
+    )
+
+
+def load_and_validate_materialized_corpus(
+    registry_path: Path,
+    scenario_matrix_path: Path,
+    asset_root: Path,
+) -> MaterializedAssetSummary:
+    """Validate frozen scenario coverage, registry provenance, and image integrity."""
+
+    records = load_asset_registry(registry_path)
+    scenarios = load_scenario_matrix(scenario_matrix_path)
+    validate_asset_registry(records, scenarios)
+    return validate_materialized_assets(records, asset_root)

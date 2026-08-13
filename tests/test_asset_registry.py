@@ -16,12 +16,13 @@ MATRIX_PATH = PROJECT_ROOT / "data" / "design" / "v0_1_scenario_matrix.csv"
 REGISTRY_PATH = PROJECT_ROOT / "data" / "registry" / "v0_1_asset_registry.jsonl"
 
 
-def test_load_asset_registry_reads_all_planned_assets() -> None:
+def test_load_asset_registry_reads_all_generated_assets() -> None:
     records = load_asset_registry(REGISTRY_PATH)
 
     assert len(records) == 48
     assert records[0].asset_id == "asset-fuselage-clean-close-diffuse"
-    assert records[-1].lifecycle_status is AssetLifecycleStatus.PLANNED
+    assert all(record.lifecycle_status is AssetLifecycleStatus.GENERATED for record in records)
+    assert all(record.image_sha256 is not None for record in records)
 
 
 def test_validate_asset_registry_matches_frozen_scenario_matrix() -> None:
@@ -32,8 +33,9 @@ def test_validate_asset_registry_matches_frozen_scenario_matrix() -> None:
 
     assert summary.splits[DatasetSplit.DEVELOPMENT] == 36
     assert summary.splits[DatasetSplit.TEST] == 12
-    assert summary.lifecycle_statuses[AssetLifecycleStatus.PLANNED] == 48
-    assert summary.records_with_generation_evidence == 0
+    assert summary.lifecycle_statuses[AssetLifecycleStatus.GENERATED] == 48
+    assert summary.lifecycle_statuses[AssetLifecycleStatus.PLANNED] == 0
+    assert summary.records_with_generation_evidence == 48
 
 
 def test_load_asset_registry_rejects_duplicate_scenario_ids(tmp_path: Path) -> None:
@@ -56,6 +58,7 @@ def test_load_asset_registry_rejects_duplicate_scenario_ids(tmp_path: Path) -> N
 def test_load_asset_registry_rejects_generated_record_without_evidence(tmp_path: Path) -> None:
     payload = json.loads(REGISTRY_PATH.read_text(encoding="utf-8").splitlines()[0])
     payload["lifecycle_status"] = "generated"
+    payload["image_sha256"] = None
     invalid_registry = tmp_path / "missing-evidence.jsonl"
     invalid_registry.write_text(json.dumps(payload), encoding="utf-8")
 
