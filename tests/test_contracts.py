@@ -3,6 +3,10 @@ from pydantic import ValidationError
 
 from aerosynth_eval.contracts import (
     AircraftRegion,
+    DimensionScore,
+    EvaluationDecision,
+    EvaluationDimension,
+    HumanAnnotation,
     InspectionSpecification,
     SurfaceCondition,
     SyntheticImageExample,
@@ -45,3 +49,20 @@ def test_synthetic_image_example_rejects_invalid_identifier() -> None:
                 required_attributes=("metal surface",),
             ),
         )
+
+
+def test_human_annotation_accepts_one_score_for_each_dimension() -> None:
+    annotation = HumanAnnotation(
+        annotation_id="annotation-001",
+        example_id="fuselage-corrosion-001",
+        rater_id="rater_01",
+        rubric_version="v0.1",
+        decision=EvaluationDecision.UNCERTAIN,
+        scores=tuple(
+            DimensionScore(dimension=dimension, score=2, rationale="Evidence is partial.")
+            for dimension in EvaluationDimension
+        ),
+        notes="Escalate because condition visibility is ambiguous.",
+    )
+
+    assert annotation.decision is EvaluationDecision.UNCERTAIN

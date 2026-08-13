@@ -42,6 +42,29 @@ class EvaluationDecision(StrEnum):
     UNCERTAIN = "uncertain"
 
 
+class DatasetSplit(StrEnum):
+    """Non-overlapping splits used by a versioned evaluation manifest."""
+
+    DEVELOPMENT = "development"
+    TEST = "test"
+
+
+class ImageProvenance(StrEnum):
+    """Permitted provenance categories for project imagery."""
+
+    SYNTHETIC = "synthetic"
+    PUBLIC = "public"
+    SELF_GENERATED = "self_generated"
+
+
+class AnnotationStatus(StrEnum):
+    """Maturity of the human-label record for a dataset example."""
+
+    UNLABELED = "unlabeled"
+    SINGLE_RATER = "single_rater"
+    ADJUDICATED = "adjudicated"
+
+
 class InspectionSpecification(BaseModel):
     """Expected properties of one synthetic inspection image."""
 
@@ -75,6 +98,17 @@ class SyntheticImageExample(BaseModel):
     specification: InspectionSpecification
 
 
+class DatasetRecord(SyntheticImageExample):
+    """A manifest record with split, provenance, and annotation metadata."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    split: DatasetSplit
+    provenance: ImageProvenance
+    annotation_status: AnnotationStatus = AnnotationStatus.UNLABELED
+    source_note: str = Field(min_length=1, max_length=500)
+
+
 class DimensionScore(BaseModel):
     """One rubric score emitted by an autograder or human rater."""
 
@@ -83,6 +117,36 @@ class DimensionScore(BaseModel):
     dimension: EvaluationDimension
     score: int = Field(ge=0, le=4)
     rationale: str = Field(min_length=1, max_length=500)
+
+
+def _require_complete_rubric(scores: tuple[DimensionScore, ...]) -> None:
+    """Reject score sets that omit or duplicate a rubric dimension."""
+
+    dimensions = {score.dimension for score in scores}
+    expected_dimensions = set(EvaluationDimension)
+    if len(scores) != len(expected_dimensions) or dimensions != expected_dimensions:
+        raise ValueError("scores must contain each evaluation dimension exactly once.")
+
+
+class HumanAnnotation(BaseModel):
+    """One human rater's structured assessment of an evaluation example."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    annotation_id: str = Field(pattern=r"^[a-z0-9][a-z0-9_-]{2,63}$")
+    example_id: str = Field(pattern=r"^[a-z0-9][a-z0-9_-]{2,63}$")
+    rater_id: str = Field(pattern=r"^[a-z][a-z0-9_-]{2,31}$")
+    rubric_version: str = Field(min_length=1, max_length=32)
+    decision: EvaluationDecision
+    scores: tuple[DimensionScore, ...] = Field(min_length=4, max_length=4)
+    notes: str = Field(min_length=1, max_length=1_000)
+
+    @model_validator(mode="after")
+    def require_each_rubric_dimension_once(self) -> Self:
+        """Ensure annotations have one score for every fixed dimension."""
+
+        _require_complete_rubric(self.scores)
+        return self
 
 
 class AutograderResult(BaseModel):
@@ -101,8 +165,5 @@ class AutograderResult(BaseModel):
     def require_each_rubric_dimension_once(self) -> Self:
         """Ensure every result has exactly one score per rubric dimension."""
 
-        dimensions = {score.dimension for score in self.scores}
-        expected_dimensions = set(EvaluationDimension)
-        if dimensions != expected_dimensions:
-            raise ValueError("scores must contain each evaluation dimension exactly once.")
+        _require_complete_rubric(self.scores)
         return self
