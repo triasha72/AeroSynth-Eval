@@ -63,6 +63,23 @@ def test_validate_autograder_response_command_returns_schema_only_summary() -> N
     assert payload["inference_performed_by_this_command"] is False
 
 
+def test_run_mlx_vlm_smoke_command_dry_run_preserves_development_only_scope() -> None:
+    result = runner.invoke(
+        app,
+        [
+            "run-mlx-vlm-smoke",
+            DEVELOPMENT_AUTOGRADER_ASSET_ID,
+            "--dry-run",
+        ],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert payload["run_plan"]["inference_performed"] is False
+    assert payload["run_plan"]["request"]["split"] == "development"
+    assert payload["run_plan"]["performance_claim_supported"] is False
+
+
 def test_validate_manifest_command_returns_summary() -> None:
     result = runner.invoke(app, ["validate-manifest", str(MANIFEST_PATH)])
 

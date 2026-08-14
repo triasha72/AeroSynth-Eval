@@ -1,0 +1,142 @@
+import json
+from datetime import UTC, datetime
+from pathlib import Path
+
+import pytest
+
+from aerosynth_eval.contracts import DatasetSplit
+from aerosynth_eval.mlx_vlm_runner import (
+    DEFAULT_MAX_TOKENS,
+    DEFAULT_MLX_VLM_MODEL,
+    DEFAULT_TEMPERATURE,
+    MlxVlmRunConfig,
+    create_mlx_vlm_smoke_plan,
+    run_mlx_vlm_smoke,
+    summarize_mlx_vlm_smoke_run,
+    write_mlx_vlm_smoke_record,
+)
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+REGISTRY_PATH = PROJECT_ROOT / "data" / "registry" / "v0_1_asset_registry.jsonl"
+MATRIX_PATH = PROJECT_ROOT / "data" / "design" / "v0_1_scenario_matrix.csv"
+ASSET_ROOT = PROJECT_ROOT / "data"
+DEVELOPMENT_ASSET_ID = "asset-fuselage-corrosion-close-diffuse"
+TEST_ASSET_ID = "asset-fuselage-clean-close-diffuse"
+
+
+def _config() -> MlxVlmRunConfig:
+    return MlxVlmRunConfig(
+        model_id=DEFAULT_MLX_VLM_MODEL,
+        max_tokens=DEFAULT_MAX_TOKENS,
+        temperature=DEFAULT_TEMPERATURE,
+    )
+
+
+def _valid_vlm_output() -> str:
+    return json.dumps(
+        {
+            "asset_id": DEVELOPMENT_ASSET_ID,
+            "scenario_id": "fuselage-corrosion-close-diffuse",
+            "rubric_version": "v0.1",
+            "result_source": "vlm_output",
+            "decision": "uncertain",
+            "confidence": 0.5,
+            "scores": [
+                {
+                    "dimension": "context_fidelity",
+                    "score": 3,
+                    "rationale": "Test-double response: context is visible in the synthetic image.",
+                },
+                {
+                    "dimension": "condition_fidelity",
+                    "score": 2,
+                    "rationale": "Test-double response: the condition is partially discernible.",
+                },
+                {
+                    "dimension": "image_quality",
+                    "score": 3,
+                    "rationale": "Test-double response: the image is readable with limitations.",
+                },
+                {
+                    "dimension": "inspection_utility",
+                    "score": 2,
+                    "rationale": "Test-double response: use remains limited to research review.",
+                },
+            ],
+            "summary": (
+                "Test-double response: exercises local-run provenance without model inference."
+            ),
+        }
+    )
+
+
+def _fake_inference(config: MlxVlmRunConfig, prompt: str, image_path: Path) -> str:
+    assert config.model_id == DEFAULT_MLX_VLM_MODEL
+    assert "result_source" in prompt
+    assert image_path.is_file()
+    return _valid_vlm_output()
+
+
+def test_create_plan_preserves_development_only_provenance() -> None:
+    plan = create_mlx_vlm_smoke_plan(
+        DEVELOPMENT_ASSET_ID,
+        _config(),
+        REGISTRY_PATH,
+        MATRIX_PATH,
+        ASSET_ROOT,
+    )
+
+    assert plan.inference_performed is False
+    assert plan.performance_claim_supported is False
+    assert plan.request.split is DatasetSplit.DEVELOPMENT
+    assert plan.request.asset_id == DEVELOPMENT_ASSET_ID
+    assert len(plan.image_sha256) == 64
+    assert len(plan.prompt_sha256) == 64
+
+
+def test_create_plan_rejects_protected_test_asset() -> None:
+    with pytest.raises(ValueError, match="protected test split"):
+        create_mlx_vlm_smoke_plan(
+            TEST_ASSET_ID,
+            _config(),
+            REGISTRY_PATH,
+            MATRIX_PATH,
+            ASSET_ROOT,
+        )
+
+
+def test_run_records_validated_test_double_without_aggregating_metrics(tmp_path: Path) -> None:
+    record = run_mlx_vlm_smoke(
+        DEVELOPMENT_ASSET_ID,
+        _config(),
+        REGISTRY_PATH,
+        MATRIX_PATH,
+        ASSET_ROOT,
+        inference=_fake_inference,
+        executed_at=datetime(2026, 8, 14, 12, 0, tzinfo=UTC),
+    )
+    output_path = write_mlx_vlm_smoke_record(record, tmp_path)
+    summary = summarize_mlx_vlm_smoke_run(record, output_path)
+
+    persisted = json.loads(output_path.read_text(encoding="utf-8"))
+    assert record.run_backend == "injected_test_double"
+    assert record.validated_response.result_source == "vlm_output"
+    assert persisted["request"]["split"] == "development"
+    assert persisted["validated_response"]["asset_id"] == DEVELOPMENT_ASSET_ID
+    assert summary["performance_claim_supported"] is False
+    assert "scores" not in summary
+
+
+def test_run_rejects_non_json_model_output() -> None:
+    def invalid_inference(_: MlxVlmRunConfig, __: str, ___: Path) -> str:
+        return "```json\n{}\n```"
+
+    with pytest.raises(ValueError, match="exactly one JSON object"):
+        run_mlx_vlm_smoke(
+            DEVELOPMENT_ASSET_ID,
+            _config(),
+            REGISTRY_PATH,
+            MATRIX_PATH,
+            ASSET_ROOT,
+            inference=invalid_inference,
+        )
