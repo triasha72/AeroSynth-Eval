@@ -186,6 +186,22 @@ def _require_apple_silicon() -> None:
         )
 
 
+def _extract_mlx_vlm_text(output: object) -> str:
+    """Extract generated text from supported MLX-VLM return shapes."""
+
+    text: object
+
+    if isinstance(output, str):
+        text = output
+    else:
+        text = getattr(output, "text", None)
+
+    if not isinstance(text, str) or not text.strip():
+        raise ValueError("MLX-VLM returned no non-empty text output.")
+
+    return text
+
+
 def _run_with_local_mlx_vlm(config: MlxVlmRunConfig, prompt: str, image_path: Path) -> str:
     """Invoke MLX-VLM lazily so Linux CI never needs the optional dependency."""
 
@@ -225,9 +241,7 @@ def _run_with_local_mlx_vlm(config: MlxVlmRunConfig, prompt: str, image_path: Pa
     except Exception as error:
         raise ValueError(f"MLX-VLM inference failed: {error}") from error
 
-    if not isinstance(output, str) or not output.strip():
-        raise ValueError("MLX-VLM returned no non-empty text output.")
-    return output
+    return _extract_mlx_vlm_text(output)
 
 
 def _parse_vlm_output(raw_model_output: str, request: AutograderRequest) -> AutograderResponse:

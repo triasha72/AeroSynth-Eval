@@ -10,6 +10,7 @@ from aerosynth_eval.mlx_vlm_runner import (
     DEFAULT_MLX_VLM_MODEL,
     DEFAULT_TEMPERATURE,
     MlxVlmRunConfig,
+    _extract_mlx_vlm_text,
     create_mlx_vlm_smoke_plan,
     run_mlx_vlm_smoke,
     summarize_mlx_vlm_smoke_run,
@@ -22,6 +23,30 @@ MATRIX_PATH = PROJECT_ROOT / "data" / "design" / "v0_1_scenario_matrix.csv"
 ASSET_ROOT = PROJECT_ROOT / "data"
 DEVELOPMENT_ASSET_ID = "asset-fuselage-corrosion-close-diffuse"
 TEST_ASSET_ID = "asset-fuselage-clean-close-diffuse"
+
+
+class _FakeGenerationResult:
+    def __init__(self, text: str) -> None:
+        self.text = text
+
+
+def test_extract_mlx_vlm_text_accepts_generation_result_shape() -> None:
+    result = _FakeGenerationResult('{"result_source": "vlm_output"}')
+
+    assert _extract_mlx_vlm_text(result) == '{"result_source": "vlm_output"}'
+
+
+def test_extract_mlx_vlm_text_accepts_legacy_string_shape() -> None:
+    output = '{"result_source": "vlm_output"}'
+
+    assert _extract_mlx_vlm_text(output) == output
+
+
+def test_extract_mlx_vlm_text_rejects_empty_generation_result() -> None:
+    result = _FakeGenerationResult("")
+
+    with pytest.raises(ValueError, match="no non-empty text output"):
+        _extract_mlx_vlm_text(result)
 
 
 def _config() -> MlxVlmRunConfig:
