@@ -9,9 +9,11 @@ from typing import Annotated, Any
 import typer
 
 from aerosynth_eval import __version__
+from aerosynth_eval.agreement import summarize_synthetic_demo_agreement
 from aerosynth_eval.annotations import (
     load_and_validate_annotation_queue,
     load_and_validate_rater_annotations,
+    load_rater_annotations,
 )
 from aerosynth_eval.asset_registry import (
     load_and_validate_asset_registry,
@@ -45,7 +47,7 @@ def info() -> None:
         {
             "project": "AeroSynth-Eval",
             "version": __version__,
-            "status": "human_labeling_protocol",
+            "status": "synthetic_agreement_analysis",
             "scope": "Synthetic aerospace inspection-image evaluation",
         }
     )
@@ -257,6 +259,94 @@ def validate_rater_annotations_command(
     _emit(
         {
             "rater_annotations": str(annotations),
+            "annotation_queue": str(queue),
+            **summary.model_dump(mode="json"),
+        }
+    )
+
+
+@app.command(name="summarize-synthetic-agreement")
+def summarize_synthetic_agreement_command(
+    annotations_a: Annotated[
+        Path,
+        typer.Argument(
+            help="Path to one explicitly synthetic demo rater-annotation CSV fixture.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ],
+    annotations_b: Annotated[
+        Path,
+        typer.Argument(
+            help="Path to a second explicitly synthetic demo rater-annotation CSV fixture.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ],
+    queue: Annotated[
+        Path,
+        typer.Option(
+            "--queue",
+            help="Path to the approved development-only annotation queue.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ] = DEFAULT_ANNOTATION_QUEUE,
+    registry: Annotated[
+        Path,
+        typer.Option(
+            "--registry",
+            help="Path to the JSON Lines synthetic-image asset registry.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ] = DEFAULT_ASSET_REGISTRY,
+    scenario_matrix: Annotated[
+        Path,
+        typer.Option(
+            "--scenario-matrix",
+            help="Path to the frozen CSV scenario matrix.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ] = DEFAULT_SCENARIO_MATRIX,
+) -> None:
+    """Summarize only clearly marked synthetic fixtures, never human submissions."""
+
+    try:
+        load_and_validate_rater_annotations(
+            annotations_a,
+            queue,
+            registry,
+            scenario_matrix,
+        )
+        load_and_validate_rater_annotations(
+            annotations_b,
+            queue,
+            registry,
+            scenario_matrix,
+        )
+        summary = summarize_synthetic_demo_agreement(
+            load_rater_annotations(annotations_a),
+            load_rater_annotations(annotations_b),
+        )
+    except ValueError as error:
+        raise typer.BadParameter(str(error), param_hint="annotations") from error
+
+    _emit(
+        {
+            "annotations_a": str(annotations_a),
+            "annotations_b": str(annotations_b),
             "annotation_queue": str(queue),
             **summary.model_dump(mode="json"),
         }

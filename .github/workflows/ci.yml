@@ -52,3 +52,11 @@ jobs:
 
       - name: Validate development annotation queue
         run: aerosynth-eval validate-annotation-queue data/annotations/v0_1_development_annotation_queue.csv
+
+      - name: Validate synthetic-demo rater fixtures
+        run: |
+          aerosynth-eval validate-rater-annotations tests/fixtures/synthetic_demo/synthetic_demo_rater_a.csv
+          aerosynth-eval validate-rater-annotations tests/fixtures/synthetic_demo/synthetic_demo_rater_b.csv
+
+      - name: Summarize synthetic-demo agreement fixture
+        run: aerosynth-eval summarize-synthetic-agreement tests/fixtures/synthetic_demo/synthetic_demo_rater_a.csv tests/fixtures/synthetic_demo/synthetic_demo_rater_b.csv
