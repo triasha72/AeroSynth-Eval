@@ -1,0 +1,31 @@
+{
+  "asset_id": "asset-fuselage-corrosion-close-diffuse",
+  "scenario_id": "fuselage-corrosion-close-diffuse",
+  "rubric_version": "v0.1",
+  "result_source": "synthetic_contract_fixture",
+  "decision": "uncertain",
+  "confidence": 0.5,
+  "scores": [
+    {
+      "dimension": "context_fidelity",
+      "score": 3,
+      "rationale": "Synthetic contract fixture only: exercises a complete context score."
+    },
+    {
+      "dimension": "condition_fidelity",
+      "score": 2,
+      "rationale": "Synthetic contract fixture only: exercises a complete condition score."
+    },
+    {
+      "dimension": "image_quality",
+      "score": 3,
+      "rationale": "Synthetic contract fixture only: exercises a complete quality score."
+    },
+    {
+      "dimension": "inspection_utility",
+      "score": 2,
+      "rationale": "Synthetic contract fixture only: exercises a complete utility score."
+    }
+  ],
+  "summary": "Synthetic contract fixture only: validates the response schema without model execution."
+}

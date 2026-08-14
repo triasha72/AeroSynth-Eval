@@ -157,21 +157,38 @@ class HumanAnnotation(BaseModel):
         return self
 
 
-class AutograderResult(BaseModel):
-    """Structured result contract for future baseline and VLM evaluators."""
+class AutograderResponseSource(StrEnum):
+    """Origin declared by a structured autograder response."""
+
+    SYNTHETIC_CONTRACT_FIXTURE = "synthetic_contract_fixture"
+    VLM_OUTPUT = "vlm_output"
+
+
+class AutograderResponse(BaseModel):
+    """Strict structured response consumed by a future VLM autograder runner."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    example_id: str
-    rubric_version: str
+    asset_id: str = Field(pattern=r"^[a-z0-9][a-z0-9_-]{2,63}$")
+    scenario_id: str = Field(pattern=r"^[a-z0-9][a-z0-9_-]{2,63}$")
+    rubric_version: str = Field(min_length=1, max_length=32)
+    result_source: AutograderResponseSource
     decision: EvaluationDecision
     confidence: float = Field(ge=0.0, le=1.0)
     scores: tuple[DimensionScore, ...] = Field(min_length=4, max_length=4)
     summary: str = Field(min_length=1, max_length=1_000)
 
     @model_validator(mode="after")
-    def require_each_rubric_dimension_once(self) -> Self:
-        """Ensure every result has exactly one score per rubric dimension."""
+    def require_complete_rubric_and_fixture_markers(self) -> Self:
+        """Require all rubric dimensions and make synthetic fixtures unmistakable."""
 
         _require_complete_rubric(self.scores)
+        if self.result_source is AutograderResponseSource.SYNTHETIC_CONTRACT_FIXTURE:
+            fixture_prefix = "Synthetic contract fixture only:"
+            fixture_text = (self.summary, *(score.rationale for score in self.scores))
+            if any(not text.startswith(fixture_prefix) for text in fixture_text):
+                raise ValueError(
+                    "synthetic contract fixtures must prefix every rationale and summary with "
+                    f"'{fixture_prefix}'."
+                )
         return self

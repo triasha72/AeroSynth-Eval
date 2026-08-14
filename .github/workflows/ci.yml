@@ -60,3 +60,9 @@ jobs:
 
       - name: Summarize synthetic-demo agreement fixture
         run: aerosynth-eval summarize-synthetic-agreement tests/fixtures/synthetic_demo/synthetic_demo_rater_a.csv tests/fixtures/synthetic_demo/synthetic_demo_rater_b.csv
+
+      - name: Preview development-only autograder prompt
+        run: aerosynth-eval preview-autograder-prompt asset-fuselage-corrosion-close-diffuse
+
+      - name: Validate synthetic autograder-response fixture
+        run: aerosynth-eval validate-autograder-response tests/fixtures/autograder/synthetic_valid_response.json

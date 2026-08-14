@@ -16,6 +16,10 @@ ANNOTATION_QUEUE_PATH = (
 SYNTHETIC_DEMO_FIXTURE_ROOT = PROJECT_ROOT / "tests" / "fixtures" / "synthetic_demo"
 SYNTHETIC_DEMO_RATER_A_PATH = SYNTHETIC_DEMO_FIXTURE_ROOT / "synthetic_demo_rater_a.csv"
 SYNTHETIC_DEMO_RATER_B_PATH = SYNTHETIC_DEMO_FIXTURE_ROOT / "synthetic_demo_rater_b.csv"
+AUTOGRADER_FIXTURE_ROOT = PROJECT_ROOT / "tests" / "fixtures" / "autograder"
+AUTOGRADER_RESPONSE_PATH = AUTOGRADER_FIXTURE_ROOT / "synthetic_valid_response.json"
+DEVELOPMENT_AUTOGRADER_ASSET_ID = "asset-fuselage-corrosion-close-diffuse"
+TEST_AUTOGRADER_ASSET_ID = "asset-fuselage-clean-close-diffuse"
 
 
 def test_info_command() -> None:
@@ -30,6 +34,33 @@ def test_rubric_command_returns_four_dimensions() -> None:
 
     assert result.exit_code == 0
     assert len(json.loads(result.stdout)["dimensions"]) == 4
+
+
+def test_preview_autograder_prompt_command_returns_development_only_request() -> None:
+    result = runner.invoke(app, ["preview-autograder-prompt", DEVELOPMENT_AUTOGRADER_ASSET_ID])
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert payload["request"]["asset_id"] == DEVELOPMENT_AUTOGRADER_ASSET_ID
+    assert payload["request"]["split"] == "development"
+    assert "performs no model inference" in payload["prompt"]
+
+
+def test_preview_autograder_prompt_command_rejects_protected_test_asset() -> None:
+    result = runner.invoke(app, ["preview-autograder-prompt", TEST_AUTOGRADER_ASSET_ID])
+
+    assert result.exit_code != 0
+    assert "protected test split" in result.output
+
+
+def test_validate_autograder_response_command_returns_schema_only_summary() -> None:
+    result = runner.invoke(app, ["validate-autograder-response", str(AUTOGRADER_RESPONSE_PATH)])
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert payload["contract_status"] == "schema_validated_only"
+    assert payload["result_source"] == "synthetic_contract_fixture"
+    assert payload["inference_performed_by_this_command"] is False
 
 
 def test_validate_manifest_command_returns_summary() -> None:
