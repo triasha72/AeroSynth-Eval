@@ -19,6 +19,12 @@ from aerosynth_eval.asset_registry import (
     load_and_validate_asset_registry,
     load_and_validate_materialized_corpus,
 )
+from aerosynth_eval.autograder import (
+    build_autograder_request,
+    load_autograder_response,
+    render_autograder_prompt,
+    summarize_validated_autograder_response,
+)
 from aerosynth_eval.dataset import load_manifest, summarize_manifest
 from aerosynth_eval.procedural_corpus import materialize_procedural_corpus
 from aerosynth_eval.rubric import inspection_rubric
@@ -47,7 +53,7 @@ def info() -> None:
         {
             "project": "AeroSynth-Eval",
             "version": __version__,
-            "status": "synthetic_agreement_analysis",
+            "status": "vlm_autograder_contract",
             "scope": "Synthetic aerospace inspection-image evaluation",
         }
     )
@@ -58,6 +64,99 @@ def rubric() -> None:
     """Print the fixed v0.1 inspection rubric."""
 
     _emit(inspection_rubric().model_dump(mode="json"))
+
+
+@app.command(name="preview-autograder-prompt")
+def preview_autograder_prompt_command(
+    asset_id: Annotated[
+        str,
+        typer.Argument(
+            help="Development-split asset ID to ground the future VLM prompt.",
+        ),
+    ],
+    registry: Annotated[
+        Path,
+        typer.Option(
+            "--registry",
+            help="Path to the JSON Lines synthetic-image asset registry.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ] = DEFAULT_ASSET_REGISTRY,
+    scenario_matrix: Annotated[
+        Path,
+        typer.Option(
+            "--scenario-matrix",
+            help="Path to the frozen CSV scenario matrix.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ] = DEFAULT_SCENARIO_MATRIX,
+) -> None:
+    """Preview a grounded prompt for a generated development asset; never run a model."""
+
+    try:
+        request = build_autograder_request(asset_id, registry, scenario_matrix)
+    except ValueError as error:
+        raise typer.BadParameter(str(error), param_hint="asset_id") from error
+
+    _emit(
+        {
+            "request": request.model_dump(mode="json"),
+            "prompt": render_autograder_prompt(request),
+        }
+    )
+
+
+@app.command(name="validate-autograder-response")
+def validate_autograder_response_command(
+    response_path: Annotated[
+        Path,
+        typer.Argument(
+            help="Path to one strict autograder-response JSON document.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ],
+    registry: Annotated[
+        Path,
+        typer.Option(
+            "--registry",
+            help="Path to the JSON Lines synthetic-image asset registry.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ] = DEFAULT_ASSET_REGISTRY,
+    scenario_matrix: Annotated[
+        Path,
+        typer.Option(
+            "--scenario-matrix",
+            help="Path to the frozen CSV scenario matrix.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ] = DEFAULT_SCENARIO_MATRIX,
+) -> None:
+    """Validate a response against one development request without evaluating a VLM."""
+
+    try:
+        response = load_autograder_response(response_path)
+        request = build_autograder_request(response.asset_id, registry, scenario_matrix)
+        summary = summarize_validated_autograder_response(response, request)
+    except ValueError as error:
+        raise typer.BadParameter(str(error), param_hint="response_path") from error
+
+    _emit({"autograder_response": str(response_path), **summary})
 
 
 @app.command(name="validate-manifest")

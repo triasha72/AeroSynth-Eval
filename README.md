@@ -31,11 +31,10 @@ research dataset quality review and must not replace qualified human inspection.
 
 ## Current status
 
-v0.7 adds a deliberately simulated agreement-analysis fixture to the
-development-only human-annotation protocol and reproducible 48-scenario
-procedural corpus. It exercises validation, deterministic agreement summaries,
-and disagreement reporting for clearly marked synthetic test records. It does
-not produce human-rater agreement, calibration, consensus, VLM-evaluation, or
+v0.8 adds a development-only, VLM-ready autograder contract. It grounds a prompt
+in frozen asset and scenario metadata, emits a strict JSON schema, and validates
+synthetic contract fixtures without invoking a model. It does not produce
+human-rater agreement, calibration, consensus, VLM-evaluation, accuracy, or
 fine-tuning evidence. The assets remain deliberately simple synthetic test
 images—not operational inspection imagery or physical simulations.
 
@@ -85,6 +84,17 @@ before using the command. Do not use fixture output in the README, CV,
 benchmark reporting, model selection, or any claim about human agreement or
 evaluator performance.
 
+## VLM-ready autograder contract
+
+The v0.8 contract creates deterministic, development-only prompt previews from
+the frozen scenario matrix and asset registry. It also validates the shape and
+metadata binding of a future evaluator response before any analysis is allowed.
+The command never loads a model or performs inference, and it rejects every
+protected test asset. The bundled response is a clearly marked synthetic
+contract fixture, not a VLM output or evaluation result. Read
+[the VLM autograder-contract note](docs/VLM_AUTOGRADER_CONTRACT.md) before
+connecting any model runner.
+
 ## Development
 
 ```bash
@@ -112,9 +122,15 @@ aerosynth-eval validate-rater-annotations \
 aerosynth-eval summarize-synthetic-agreement \
   tests/fixtures/synthetic_demo/synthetic_demo_rater_a.csv \
   tests/fixtures/synthetic_demo/synthetic_demo_rater_b.csv
+
+aerosynth-eval preview-autograder-prompt \
+  asset-fuselage-corrosion-close-diffuse
+aerosynth-eval validate-autograder-response \
+  tests/fixtures/autograder/synthetic_valid_response.json
 ```
 
 GitHub Actions runs formatting, linting, type checking, tests, and validation of
 the bundled manifest, scenario design, provenance, materialized corpus, and
 development annotation queue, as well as the synthetic demo fixtures, for pushes
-and pull requests targeting `main`.
+and pull requests targeting `main`. It also checks the development-only prompt
+preview and synthetic autograder-response contract fixture.
