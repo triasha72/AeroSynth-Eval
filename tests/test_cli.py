@@ -13,6 +13,9 @@ REGISTRY_PATH = PROJECT_ROOT / "data" / "registry" / "v0_1_asset_registry.jsonl"
 ANNOTATION_QUEUE_PATH = (
     PROJECT_ROOT / "data" / "annotations" / "v0_1_development_annotation_queue.csv"
 )
+SYNTHETIC_DEMO_FIXTURE_ROOT = PROJECT_ROOT / "tests" / "fixtures" / "synthetic_demo"
+SYNTHETIC_DEMO_RATER_A_PATH = SYNTHETIC_DEMO_FIXTURE_ROOT / "synthetic_demo_rater_a.csv"
+SYNTHETIC_DEMO_RATER_B_PATH = SYNTHETIC_DEMO_FIXTURE_ROOT / "synthetic_demo_rater_b.csv"
 
 
 def test_info_command() -> None:
@@ -80,3 +83,22 @@ def test_validate_annotation_queue_command_returns_summary() -> None:
         "oblique_blur": 3,
         "oblique_directional": 3,
     }
+
+
+def test_summarize_synthetic_agreement_command_returns_fixture_summary() -> None:
+    result = runner.invoke(
+        app,
+        [
+            "summarize-synthetic-agreement",
+            str(SYNTHETIC_DEMO_RATER_A_PATH),
+            str(SYNTHETIC_DEMO_RATER_B_PATH),
+        ],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert payload["data_classification"] == "synthetic_demo_fixture"
+    assert payload["human_agreement_claim_supported"] is False
+    assert payload["record_count"] == 12
+    assert payload["decision_exact_agreement"]["count"] == 10
+    assert len(payload["disagreement_candidates"]) == 2

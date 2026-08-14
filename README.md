@@ -31,13 +31,13 @@ research dataset quality review and must not replace qualified human inspection.
 
 ## Current status
 
-v0.6 adds a development-only human-annotation protocol to the reproducible
-48-scenario procedural corpus. The bundled 12-image calibration queue has no
-scores or consensus labels; it defines a controlled path for collecting
-independent human ratings before any VLM evaluator is tuned or compared with
-people. The assets remain deliberately simple synthetic test images—not
-operational inspection imagery, physical simulations, or evidence of VLM
-evaluation accuracy, human agreement, calibration, or fine-tuning.
+v0.7 adds a deliberately simulated agreement-analysis fixture to the
+development-only human-annotation protocol and reproducible 48-scenario
+procedural corpus. It exercises validation, deterministic agreement summaries,
+and disagreement reporting for clearly marked synthetic test records. It does
+not produce human-rater agreement, calibration, consensus, VLM-evaluation, or
+fine-tuning evidence. The assets remain deliberately simple synthetic test
+images—not operational inspection imagery or physical simulations.
 
 ## Benchmark foundation
 
@@ -74,6 +74,17 @@ protected test assets and includes no labels or agreement results. Read
 [the human-annotation protocol](docs/HUMAN_ANNOTATION_PROTOCOL.md) before
 collecting or validating any response files.
 
+## Synthetic agreement-analysis fixture
+
+The paired fixtures in `tests/fixtures/synthetic_demo/` are deliberately
+simulated inputs for testing the agreement-analysis pipeline. They use
+synthetic IDs and rationales, are checked in CI, and are never human ratings,
+VLM outputs, gold labels, consensus labels, calibration evidence, or evaluation
+results. Read [the synthetic agreement-analysis note](docs/SYNTHETIC_AGREEMENT_ANALYSIS.md)
+before using the command. Do not use fixture output in the README, CV,
+benchmark reporting, model selection, or any claim about human agreement or
+evaluator performance.
+
 ## Development
 
 ```bash
@@ -93,8 +104,17 @@ aerosynth-eval validate-asset-registry data/registry/v0_1_asset_registry.jsonl
 aerosynth-eval validate-materialized-corpus
 aerosynth-eval validate-annotation-queue \
   data/annotations/v0_1_development_annotation_queue.csv
+
+aerosynth-eval validate-rater-annotations \
+  tests/fixtures/synthetic_demo/synthetic_demo_rater_a.csv
+aerosynth-eval validate-rater-annotations \
+  tests/fixtures/synthetic_demo/synthetic_demo_rater_b.csv
+aerosynth-eval summarize-synthetic-agreement \
+  tests/fixtures/synthetic_demo/synthetic_demo_rater_a.csv \
+  tests/fixtures/synthetic_demo/synthetic_demo_rater_b.csv
 ```
 
 GitHub Actions runs formatting, linting, type checking, tests, and validation of
 the bundled manifest, scenario design, provenance, materialized corpus, and
-development annotation queue for pushes and pull requests targeting `main`.
+development annotation queue, as well as the synthetic demo fixtures, for pushes
+and pull requests targeting `main`.
