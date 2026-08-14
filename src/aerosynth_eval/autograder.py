@@ -114,6 +114,21 @@ def render_autograder_prompt(request: AutograderRequest) -> str:
     return json.dumps(payload, indent=2, sort_keys=True)
 
 
+def render_runtime_autograder_prompt(request: AutograderRequest) -> str:
+    """Render the VLM prompt used only after a development asset passes all guards."""
+
+    payload = json.loads(render_autograder_prompt(request))
+    payload["image_handling"] = (
+        "The local runner attaches exactly one image at request.image_reference. "
+        "Evaluate only that attached synthetic research image."
+    )
+    payload["runtime_invocation"] = (
+        "This is one local development-split inference. Return only one bare JSON object "
+        "that satisfies output_schema, and set result_source to 'vlm_output'."
+    )
+    return json.dumps(payload, indent=2, sort_keys=True)
+
+
 def load_autograder_response(path: Path) -> AutograderResponse:
     """Load one strict JSON response and retain useful source-path errors."""
 

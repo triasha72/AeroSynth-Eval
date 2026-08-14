@@ -26,6 +26,16 @@ from aerosynth_eval.autograder import (
     summarize_validated_autograder_response,
 )
 from aerosynth_eval.dataset import load_manifest, summarize_manifest
+from aerosynth_eval.mlx_vlm_runner import (
+    DEFAULT_MAX_TOKENS,
+    DEFAULT_MLX_VLM_MODEL,
+    DEFAULT_TEMPERATURE,
+    MlxVlmRunConfig,
+    create_mlx_vlm_smoke_plan,
+    run_mlx_vlm_smoke,
+    summarize_mlx_vlm_smoke_run,
+    write_mlx_vlm_smoke_record,
+)
 from aerosynth_eval.procedural_corpus import materialize_procedural_corpus
 from aerosynth_eval.rubric import inspection_rubric
 from aerosynth_eval.scenario_matrix import load_scenario_matrix, validate_scenario_matrix
@@ -34,6 +44,7 @@ DEFAULT_SCENARIO_MATRIX = Path("data/design/v0_1_scenario_matrix.csv")
 DEFAULT_ASSET_REGISTRY = Path("data/registry/v0_1_asset_registry.jsonl")
 DEFAULT_ASSET_ROOT = Path("data")
 DEFAULT_ANNOTATION_QUEUE = Path("data/annotations/v0_1_development_annotation_queue.csv")
+DEFAULT_MLX_VLM_OUTPUT_DIRECTORY = Path("outputs/mlx_vlm")
 
 app = typer.Typer(
     add_completion=False,
@@ -53,7 +64,7 @@ def info() -> None:
         {
             "project": "AeroSynth-Eval",
             "version": __version__,
-            "status": "vlm_autograder_contract",
+            "status": "local_mlx_vlm_runner",
             "scope": "Synthetic aerospace inspection-image evaluation",
         }
     )
@@ -157,6 +168,109 @@ def validate_autograder_response_command(
         raise typer.BadParameter(str(error), param_hint="response_path") from error
 
     _emit({"autograder_response": str(response_path), **summary})
+
+
+@app.command(name="run-mlx-vlm-smoke")
+def run_mlx_vlm_smoke_command(
+    asset_id: Annotated[
+        str,
+        typer.Argument(
+            help="Generated development asset ID for one local VLM smoke inference.",
+        ),
+    ],
+    model: Annotated[
+        str,
+        typer.Option("--model", help="MLX or Hugging Face model identifier to load locally."),
+    ] = DEFAULT_MLX_VLM_MODEL,
+    max_tokens: Annotated[
+        int,
+        typer.Option("--max-tokens", help="Maximum output tokens for this one local run."),
+    ] = DEFAULT_MAX_TOKENS,
+    temperature: Annotated[
+        float,
+        typer.Option("--temperature", help="Sampling temperature for this one local run."),
+    ] = DEFAULT_TEMPERATURE,
+    output_directory: Annotated[
+        Path,
+        typer.Option(
+            "--output-directory",
+            help="Ignored directory where a successful local provenance record is written.",
+            file_okay=False,
+            dir_okay=True,
+        ),
+    ] = DEFAULT_MLX_VLM_OUTPUT_DIRECTORY,
+    dry_run: Annotated[
+        bool,
+        typer.Option(
+            "--dry-run",
+            help="Validate the development request and image without importing or running MLX-VLM.",
+        ),
+    ] = False,
+    registry: Annotated[
+        Path,
+        typer.Option(
+            "--registry",
+            help="Path to the JSON Lines synthetic-image asset registry.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ] = DEFAULT_ASSET_REGISTRY,
+    scenario_matrix: Annotated[
+        Path,
+        typer.Option(
+            "--scenario-matrix",
+            help="Path to the frozen CSV scenario matrix.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ] = DEFAULT_SCENARIO_MATRIX,
+    asset_root: Annotated[
+        Path,
+        typer.Option(
+            "--asset-root",
+            help="Directory that contains the registry's assets/v0_1 paths.",
+            exists=True,
+            file_okay=False,
+            dir_okay=True,
+            readable=True,
+        ),
+    ] = DEFAULT_ASSET_ROOT,
+) -> None:
+    """Run one local VLM smoke inference or inspect its development-only plan."""
+
+    try:
+        config = MlxVlmRunConfig(
+            model_id=model,
+            max_tokens=max_tokens,
+            temperature=temperature,
+        )
+        if dry_run:
+            plan = create_mlx_vlm_smoke_plan(
+                asset_id,
+                config,
+                registry,
+                scenario_matrix,
+                asset_root,
+            )
+            _emit({"run_plan": plan.model_dump(mode="json")})
+            return
+
+        record = run_mlx_vlm_smoke(
+            asset_id,
+            config,
+            registry,
+            scenario_matrix,
+            asset_root,
+        )
+        output_path = write_mlx_vlm_smoke_record(record, output_directory)
+    except ValueError as error:
+        raise typer.BadParameter(str(error), param_hint="asset_id") from error
+
+    _emit(summarize_mlx_vlm_smoke_run(record, output_path))
 
 
 @app.command(name="validate-manifest")

@@ -31,12 +31,13 @@ research dataset quality review and must not replace qualified human inspection.
 
 ## Current status
 
-v0.8 adds a development-only, VLM-ready autograder contract. It grounds a prompt
-in frozen asset and scenario metadata, emits a strict JSON schema, and validates
-synthetic contract fixtures without invoking a model. It does not produce
-human-rater agreement, calibration, consensus, VLM-evaluation, accuracy, or
-fine-tuning evidence. The assets remain deliberately simple synthetic test
-images—not operational inspection imagery or physical simulations.
+v0.9 adds an optional local MLX-VLM smoke runner for one generated development
+asset at a time. It validates frozen corpus provenance and image integrity,
+attaches the image to the strict v0.8 contract, and records a local response
+only after exact schema and request binding pass. It does not produce
+human-rater agreement, calibration, consensus, aggregate VLM evaluation,
+accuracy, or fine-tuning evidence. The assets remain deliberately simple
+synthetic test images—not operational inspection imagery or physical simulations.
 
 ## Benchmark foundation
 
@@ -95,6 +96,17 @@ contract fixture, not a VLM output or evaluation result. Read
 [the VLM autograder-contract note](docs/VLM_AUTOGRADER_CONTRACT.md) before
 connecting any model runner.
 
+
+## Local MLX-VLM development runner
+
+The v0.9 runner is an optional Apple Silicon local-inference integration. It
+accepts one generated development asset, rejects every protected test asset,
+captures model and image provenance, and saves a local run record outside Git.
+Its dry-run mode performs no model import, download, or inference; an actual
+single response remains an individual research artifact, not an evaluator-quality
+result. Read [the local-runner note](docs/MLX_VLM_DEVELOPMENT_RUNNER.md) before
+installing MLX-VLM or running the command.
+
 ## Development
 
 ```bash
@@ -127,10 +139,15 @@ aerosynth-eval preview-autograder-prompt \
   asset-fuselage-corrosion-close-diffuse
 aerosynth-eval validate-autograder-response \
   tests/fixtures/autograder/synthetic_valid_response.json
+
+aerosynth-eval run-mlx-vlm-smoke \
+  asset-fuselage-corrosion-close-diffuse \
+  --dry-run
 ```
 
 GitHub Actions runs formatting, linting, type checking, tests, and validation of
 the bundled manifest, scenario design, provenance, materialized corpus, and
 development annotation queue, as well as the synthetic demo fixtures, for pushes
 and pull requests targeting `main`. It also checks the development-only prompt
-preview and synthetic autograder-response contract fixture.
+preview, synthetic autograder-response contract fixture, and the no-inference
+plan for the optional local MLX-VLM runner.

@@ -66,3 +66,6 @@ jobs:
 
       - name: Validate synthetic autograder-response fixture
         run: aerosynth-eval validate-autograder-response tests/fixtures/autograder/synthetic_valid_response.json
+
+      - name: Plan local MLX-VLM development smoke run
+        run: aerosynth-eval run-mlx-vlm-smoke asset-fuselage-corrosion-close-diffuse --dry-run
