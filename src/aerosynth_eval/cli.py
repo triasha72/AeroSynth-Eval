@@ -80,7 +80,7 @@ def info() -> None:
         {
             "project": "AeroSynth-Eval",
             "version": __version__,
-            "status": "scalable_evaluation",
+            "status": "multi_judge",
             "scope": "Synthetic aerospace inspection-image evaluation",
         }
     )
