@@ -1,6 +1,7 @@
 import json
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -9,7 +10,9 @@ from aerosynth_eval.mlx_vlm_runner import (
     DEFAULT_MAX_TOKENS,
     DEFAULT_MLX_VLM_MODEL,
     DEFAULT_TEMPERATURE,
+    MlxLogitsProcessor,
     MlxVlmRunConfig,
+    _build_autograder_logits_processor,
     _extract_mlx_vlm_text,
     create_mlx_vlm_smoke_plan,
     run_mlx_vlm_smoke,
@@ -28,6 +31,48 @@ TEST_ASSET_ID = "asset-fuselage-clean-close-diffuse"
 class _FakeGenerationResult:
     def __init__(self, text: str) -> None:
         self.text = text
+
+
+class _FakeProcessor:
+    def __init__(self) -> None:
+        self.tokenizer = object()
+
+
+def test_build_autograder_logits_processor_uses_response_schema() -> None:
+    processor = _FakeProcessor()
+    captured: dict[str, object] = {}
+
+    def fake_logits_processor(tokens: Any, logits: Any) -> Any:
+        return logits
+
+    def fake_builder(
+        tokenizer: Any,
+        schema: dict[str, Any],
+    ) -> MlxLogitsProcessor:
+        captured["tokenizer"] = tokenizer
+        captured["schema"] = schema
+        return fake_logits_processor
+
+    result = _build_autograder_logits_processor(
+        processor,
+        fake_builder,
+    )
+
+    assert result is fake_logits_processor
+    assert captured["tokenizer"] is processor.tokenizer
+
+    schema = captured["schema"]
+    assert isinstance(schema, dict)
+    assert schema["type"] == "object"
+
+    properties = schema["properties"]
+    assert "asset_id" in properties
+    assert "scenario_id" in properties
+    assert "result_source" in properties
+    assert "decision" in properties
+    assert "confidence" in properties
+    assert "scores" in properties
+    assert "summary" in properties
 
 
 def test_extract_mlx_vlm_text_accepts_generation_result_shape() -> None:

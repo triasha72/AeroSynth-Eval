@@ -90,6 +90,11 @@ class MlxVlmSmokeRunRecord(BaseModel):
 
 
 MlxVlmInference = Callable[[MlxVlmRunConfig, str, Path], str]
+MlxLogitsProcessor = Callable[[Any, Any], Any]
+MlxStructuredOutputBuilder = Callable[
+    [Any, dict[str, Any]],
+    MlxLogitsProcessor,
+]
 
 
 @dataclass(frozen=True)
@@ -202,6 +207,17 @@ def _extract_mlx_vlm_text(output: object) -> str:
     return text
 
 
+def _build_autograder_logits_processor(
+    processor: Any,
+    builder: MlxStructuredOutputBuilder,
+) -> MlxLogitsProcessor:
+    """Build constrained decoding from the frozen autograder response schema."""
+
+    tokenizer = getattr(processor, "tokenizer", processor)
+    schema = AutograderResponse.model_json_schema()
+    return builder(tokenizer, schema)
+
+
 def _run_with_local_mlx_vlm(config: MlxVlmRunConfig, prompt: str, image_path: Path) -> str:
     """Invoke MLX-VLM lazily so Linux CI never needs the optional dependency."""
 
@@ -209,7 +225,9 @@ def _run_with_local_mlx_vlm(config: MlxVlmRunConfig, prompt: str, image_path: Pa
     try:
         mlx_vlm = import_module("mlx_vlm")
         prompt_utils = import_module("mlx_vlm.prompt_utils")
+        structured = import_module("mlx_vlm.structured")
         utils = import_module("mlx_vlm.utils")
+
     except ModuleNotFoundError as error:
         raise ValueError(
             'MLX-VLM is not installed. Run: python -m pip install -e ".[dev,mlx]"'
@@ -218,11 +236,21 @@ def _run_with_local_mlx_vlm(config: MlxVlmRunConfig, prompt: str, image_path: Pa
     load = cast(Callable[[str], tuple[Any, Any]], mlx_vlm.load)
     generate = cast(Callable[..., object], mlx_vlm.generate)
     apply_chat_template = cast(Callable[..., str], prompt_utils.apply_chat_template)
+    build_json_schema_logits_processor = cast(
+        MlxStructuredOutputBuilder,
+        structured.build_json_schema_logits_processor,
+    )
     load_config = cast(Callable[[str], Any], utils.load_config)
 
     try:
         model, processor = load(config.model_id)
         model_config = load_config(config.model_id)
+
+        json_logits_processor = _build_autograder_logits_processor(
+            processor,
+            build_json_schema_logits_processor,
+        )
+
         formatted_prompt = apply_chat_template(
             processor,
             model_config,
@@ -237,6 +265,7 @@ def _run_with_local_mlx_vlm(config: MlxVlmRunConfig, prompt: str, image_path: Pa
             verbose=False,
             max_tokens=config.max_tokens,
             temperature=config.temperature,
+            logits_processors=[json_logits_processor],
         )
     except Exception as error:
         raise ValueError(f"MLX-VLM inference failed: {error}") from error
