@@ -26,6 +26,12 @@ from aerosynth_eval.autograder import (
     summarize_validated_autograder_response,
 )
 from aerosynth_eval.dataset import load_manifest, summarize_manifest
+from aerosynth_eval.human_annotation_ingestion import (
+    ingest_human_annotation_study,
+    prepare_human_rater_template,
+    summarize_human_annotation_ingestion,
+    write_human_annotation_ingestion_manifest,
+)
 from aerosynth_eval.mlx_vlm_runner import (
     DEFAULT_MAX_TOKENS,
     DEFAULT_MLX_VLM_MODEL,
@@ -54,6 +60,7 @@ DEFAULT_ASSET_ROOT = Path("data")
 DEFAULT_ANNOTATION_QUEUE = Path("data/annotations/v0_1_development_annotation_queue.csv")
 DEFAULT_MLX_VLM_OUTPUT_DIRECTORY = Path("outputs/mlx_vlm")
 DEFAULT_VLM_BATCH_OUTPUT_DIRECTORY = Path("outputs/vlm_batches")
+DEFAULT_HUMAN_ANNOTATION_OUTPUT_DIRECTORY = Path("outputs/human_annotations")
 
 app = typer.Typer(
     add_completion=False,
@@ -73,7 +80,7 @@ def info() -> None:
         {
             "project": "AeroSynth-Eval",
             "version": __version__,
-            "status": "evaluator_output_reliability",
+            "status": "human_annotation_ingestion",
             "scope": "Synthetic aerospace inspection-image evaluation",
         }
     )
@@ -612,6 +619,170 @@ def validate_rater_annotations_command(
         {
             "rater_annotations": str(annotations),
             "annotation_queue": str(queue),
+            **summary.model_dump(mode="json"),
+        }
+    )
+
+
+@app.command(name="prepare-human-rater-template")
+def prepare_human_rater_template_command(
+    rater_id: Annotated[
+        str,
+        typer.Argument(
+            help="Pseudonymous rater ID; do not use a person's direct identifier.",
+        ),
+    ],
+    output_path: Annotated[
+        Path,
+        typer.Argument(
+            help="Private CSV path to create; existing files are never overwritten.",
+        ),
+    ],
+    queue: Annotated[
+        Path,
+        typer.Option(
+            "--queue",
+            help="Path to the approved development-only annotation queue.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ] = DEFAULT_ANNOTATION_QUEUE,
+    registry: Annotated[
+        Path,
+        typer.Option(
+            "--registry",
+            help="Path to the JSON Lines synthetic-image asset registry.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ] = DEFAULT_ASSET_REGISTRY,
+    scenario_matrix: Annotated[
+        Path,
+        typer.Option(
+            "--scenario-matrix",
+            help="Path to the frozen CSV scenario matrix.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ] = DEFAULT_SCENARIO_MATRIX,
+) -> None:
+    """Create one blank private rater CSV bound to the development queue."""
+
+    try:
+        created_path = prepare_human_rater_template(
+            rater_id,
+            output_path,
+            queue,
+            registry,
+            scenario_matrix,
+        )
+    except ValueError as error:
+        raise typer.BadParameter(str(error), param_hint="rater_id") from error
+
+    _emit(
+        {
+            "template": str(created_path),
+            "rater_id": rater_id,
+            "annotation_queue": str(queue),
+            "split": "development",
+            "ratings_populated": False,
+            "agreement_computed": False,
+        }
+    )
+
+
+@app.command(name="ingest-human-annotations")
+def ingest_human_annotations_command(
+    annotations_a: Annotated[
+        Path,
+        typer.Argument(
+            help="Private complete CSV submission from the first pseudonymous rater.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ],
+    annotations_b: Annotated[
+        Path,
+        typer.Argument(
+            help="Private complete CSV submission from the second pseudonymous rater.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ],
+    queue: Annotated[
+        Path,
+        typer.Option(
+            "--queue",
+            help="Path to the approved development-only annotation queue.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ] = DEFAULT_ANNOTATION_QUEUE,
+    output_directory: Annotated[
+        Path,
+        typer.Option(
+            "--output-directory",
+            help="Ignored directory for the non-label ingestion manifest.",
+            file_okay=False,
+            dir_okay=True,
+        ),
+    ] = DEFAULT_HUMAN_ANNOTATION_OUTPUT_DIRECTORY,
+    registry: Annotated[
+        Path,
+        typer.Option(
+            "--registry",
+            help="Path to the JSON Lines synthetic-image asset registry.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ] = DEFAULT_ASSET_REGISTRY,
+    scenario_matrix: Annotated[
+        Path,
+        typer.Option(
+            "--scenario-matrix",
+            help="Path to the frozen CSV scenario matrix.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ] = DEFAULT_SCENARIO_MATRIX,
+) -> None:
+    """Validate and fingerprint two complete private human-rater submissions."""
+
+    try:
+        manifest = ingest_human_annotation_study(
+            annotations_a,
+            annotations_b,
+            queue,
+            registry,
+            scenario_matrix,
+        )
+        manifest_path = write_human_annotation_ingestion_manifest(
+            manifest,
+            output_directory,
+        )
+        summary = summarize_human_annotation_ingestion(manifest)
+    except ValueError as error:
+        raise typer.BadParameter(str(error), param_hint="annotations_a") from error
+
+    _emit(
+        {
+            "ingestion_manifest": str(manifest_path),
             **summary.model_dump(mode="json"),
         }
     )
