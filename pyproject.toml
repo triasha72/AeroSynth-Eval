@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aerosynth-eval"
-version = "0.22.0"
+version = "0.23.0"
 description = "Human-aligned evaluation tooling for synthetic aerospace inspection imagery."
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
