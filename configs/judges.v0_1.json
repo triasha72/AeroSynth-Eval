@@ -1,0 +1,26 @@
+[
+  {
+    "judge_id": "qwen2vl_2b_4bit",
+    "family": "qwen2_vl",
+    "model_id": "mlx-community/Qwen2-VL-2B-Instruct-4bit",
+    "model_revision": "main",
+    "enabled": true,
+    "notes": "Existing AeroSynth baseline; Apache-2.0 model card."
+  },
+  {
+    "judge_id": "smolvlm_256m_4bit",
+    "family": "smolvlm",
+    "model_id": "mlx-community/SmolVLM-256M-Instruct-4bit",
+    "model_revision": "main",
+    "enabled": true,
+    "notes": "Small cross-family efficiency baseline; verify local multi-image behavior before full run."
+  },
+  {
+    "judge_id": "phi35vision_4bit",
+    "family": "phi3_vision",
+    "model_id": "mlx-community/Phi-3.5-vision-instruct-4bit",
+    "model_revision": "main",
+    "enabled": true,
+    "notes": "Cross-family vision-language baseline; larger memory footprint."
+  }
+]
