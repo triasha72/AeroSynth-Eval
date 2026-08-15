@@ -16,3 +16,4 @@ data/interim/
 data/processed/
 data/annotations/private/
 outputs/
+data/external/
