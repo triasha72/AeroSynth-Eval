@@ -19,6 +19,7 @@ from aerosynth_eval.contracts import (
     DatasetSplit,
     SurfaceCondition,
 )
+from aerosynth_eval.evaluator_output import build_request_bound_autograder_schema
 from aerosynth_eval.rubric import inspection_rubric
 from aerosynth_eval.scenario_matrix import ScenarioMatrixRecord, load_scenario_matrix
 
@@ -91,8 +92,18 @@ def build_autograder_request(
     )
 
 
+def _request_bound_output_schema(request: AutograderRequest) -> dict[str, object]:
+    """Return a response schema whose identity fields are exact for this request."""
+
+    return build_request_bound_autograder_schema(
+        request.asset_id,
+        request.scenario_id,
+        request.rubric_version,
+    )
+
+
 def render_autograder_prompt(request: AutograderRequest) -> str:
-    """Render a deterministic, schema-grounded prompt without invoking a model."""
+    """Render a deterministic request-bound prompt without invoking a model."""
 
     payload = {
         "task": (
@@ -109,13 +120,13 @@ def render_autograder_prompt(request: AutograderRequest) -> str:
         ),
         "request": request.model_dump(mode="json"),
         "rubric": inspection_rubric().model_dump(mode="json"),
-        "output_schema": AutograderResponse.model_json_schema(),
+        "output_schema": _request_bound_output_schema(request),
     }
     return json.dumps(payload, indent=2, sort_keys=True)
 
 
 def render_runtime_autograder_prompt(request: AutograderRequest) -> str:
-    """Render the VLM prompt used only after a development asset passes all guards."""
+    """Render the request-bound VLM prompt after all development guards pass."""
 
     payload = json.loads(render_autograder_prompt(request))
     payload["image_handling"] = (
@@ -124,7 +135,8 @@ def render_runtime_autograder_prompt(request: AutograderRequest) -> str:
     )
     payload["runtime_invocation"] = (
         "This is one local development-split inference. Return only one bare JSON object "
-        "that satisfies output_schema, and set result_source to 'vlm_output'."
+        "that satisfies output_schema. The asset_id, scenario_id, rubric_version, and "
+        "result_source fields are fixed by output_schema and must be copied exactly."
     )
     return json.dumps(payload, indent=2, sort_keys=True)
 
