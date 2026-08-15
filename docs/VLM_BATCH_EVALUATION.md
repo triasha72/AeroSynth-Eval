@@ -2,38 +2,81 @@
 
 ## Purpose
 
-AeroSynth-Eval v0.10 adds a development-only VLM batch runner built on top of
-the validated single-image MLX-VLM execution path.
+AeroSynth-Eval v0.11 provides a development-only VLM batch runner built on top
+of the validated single-image MLX-VLM execution path.
 
-The batch runner exists to establish reproducible multi-case execution,
-provenance, failure isolation, and operational reliability before model-quality
-evaluation begins.
+The batch runner establishes reproducible multi-case execution, provenance,
+failure isolation, typed reliability diagnostics, and bounded retry behavior
+before model-quality evaluation begins.
 
 It does not establish evaluator accuracy, human agreement, calibration, model
 superiority, or protected-test performance.
 
 ## Development queue
 
-The initial batch uses the existing frozen human-annotation queue:
+The batch uses the existing frozen development annotation queue:
 
 `data/annotations/v0_1_development_annotation_queue.csv`
 
 The queue contains exactly 12 development assets and is validated against the
-frozen scenario matrix and asset registry before any inference begins.
+frozen scenario matrix and asset registry before inference begins.
 
 Protected test assets are rejected before batch inference begins.
 
-## Failure isolation
+## Shared local session
 
-One failed case does not terminate the remaining batch.
+For a real local batch, the MLX-VLM model and processor are initialized once and
+reused across the 12 development cases.
 
-Each case is stored as either:
+A fresh JSON-schema logits processor is still constructed for every case so
+structured-decoding parser state is never reused across independent responses.
 
-- `success`, with its complete validated single-case provenance record; or
-- `failed`, with an error and no accepted run record.
+The validated single-case path remains authoritative for:
 
-The v0.10 milestone deliberately uses only coarse `success` and `failed`
-outcomes. Detailed failure taxonomy is deferred to a later reliability milestone.
+- development-only request construction;
+- image and provenance checks;
+- structured output generation;
+- strict JSON parsing;
+- Pydantic response validation; and
+- asset/scenario/rubric request binding.
+
+## Failure isolation and taxonomy
+
+One case failure does not terminate later cases.
+
+Failed cases are classified as:
+
+- `model_load_failure`
+- `inference_failure`
+- `empty_response`
+- `json_parse_failure`
+- `schema_validation_failure`
+- `request_binding_failure`
+- `preparation_failure`
+
+A global model/session initialization failure records all 12 scheduled cases as
+`model_load_failure` with zero fake inference attempts.
+
+## Retry policy
+
+Retries are deliberately narrow.
+
+Only `inference_failure` is retryable. JSON failures, schema failures,
+request-binding failures, preparation failures, and empty responses are not
+blindly retried.
+
+`--max-retries` is bounded from 0 through 3 and defaults to 1.
+
+## Timing provenance
+
+The batch record includes:
+
+- shared-session setup time;
+- per-case elapsed time;
+- per-case attempt count; and
+- total batch elapsed time.
+
+These are operational measurements only and are not model-quality metrics.
 
 ## Dry run
 
@@ -41,27 +84,60 @@ outcomes. Detailed failure taxonomy is deferred to a later reliability milestone
 aerosynth-eval run-vlm-batch --dry-run
 ```
 
-A valid plan must report `inference_performed: false`,
-`performance_claim_supported: false`, `split: development`, and 12 unique
-development asset IDs.
+A valid plan reports:
 
-## Metrics in this milestone
+- `inference_performed: false`
+- `performance_claim_supported: false`
+- `shared_session_enabled: true`
+- `split: development`
+- the bounded retry policy
+- 12 unique development assets
 
-The batch summary reports operational quantities only:
+## Real development batch
 
+After v0.11 is merged and local validation passes:
+
+```bash
+aerosynth-eval run-vlm-batch \
+  --model mlx-community/Qwen2-VL-2B-Instruct-4bit \
+  --max-tokens 800 \
+  --temperature 0.0 \
+  --max-retries 1
+```
+
+Batch records are written under:
+
+`outputs/vlm_batches/`
+
+The `outputs/` tree remains ignored by Git.
+
+## Operational summary
+
+The batch summary reports:
+
+- cases scheduled;
 - cases attempted;
 - cases succeeded;
-- cases failed; and
-- execution success rate.
+- cases failed;
+- total inference attempts;
+- retry attempts;
+- execution success rate;
+- typed failure counts;
+- session reuse;
+- session setup time; and
+- total batch elapsed time.
 
-These quantities measure execution reliability, not evaluator quality.
+These quantities measure execution reliability only.
 
-## Current implementation limitation
+## Deferred capabilities
 
-The v0.10 batch runner intentionally prioritizes correctness and reuse of the
-existing validated single-case execution path. Persistent shared model sessions,
-parallel workers, retries, caching, resume support, detailed failure categories,
-and distributed execution are deferred to later milestones.
+The v0.11 runner remains sequential. The following are intentionally deferred:
+
+- parallel workers;
+- response caching;
+- resume/checkpoint support;
+- distributed execution; and
+- evaluator-quality comparison against human reference labels.
 
 ## Validation
 
@@ -78,5 +154,7 @@ git status --short
 ## Safety boundary
 
 AeroSynth-Eval remains an independent research prototype using public,
-synthetic, or self-generated data. It is not an operational inspection,
-maintenance, airworthiness, defect-diagnosis, or certification system.
+synthetic, or self-generated data.
+
+It is not an operational inspection, maintenance, airworthiness,
+defect-diagnosis, or certification system.

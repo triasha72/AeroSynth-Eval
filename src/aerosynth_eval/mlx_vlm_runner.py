@@ -1,9 +1,9 @@
-"""Optional local MLX-VLM runner for one development-only synthetic asset.
+"""Optional local MLX-VLM runner for development-only synthetic assets.
 
-The runner is deliberately narrow: it executes one explicitly selected generated
-development asset, validates the returned JSON against the existing autograder
-contract, and records provenance. It never touches a protected test asset and
-does not compute evaluation metrics or make performance claims.
+The runner validates one explicitly selected development asset, constrains local
+MLX-VLM generation to the frozen autograder response schema, validates the
+returned response, and records provenance. It never evaluates protected test
+assets and does not compute evaluator-quality metrics.
 """
 
 from __future__ import annotations
@@ -15,6 +15,7 @@ import uuid
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from enum import StrEnum
 from importlib import import_module, metadata
 from pathlib import Path
 from typing import Any, Literal, cast
@@ -39,8 +40,29 @@ DEFAULT_MAX_TOKENS = 800
 DEFAULT_TEMPERATURE = 0.0
 
 
+class MlxVlmFailureKind(StrEnum):
+    """Typed failure categories surfaced to higher-level batch orchestration."""
+
+    MODEL_LOAD_FAILURE = "model_load_failure"
+    INFERENCE_FAILURE = "inference_failure"
+    EMPTY_RESPONSE = "empty_response"
+    JSON_PARSE_FAILURE = "json_parse_failure"
+    SCHEMA_VALIDATION_FAILURE = "schema_validation_failure"
+    REQUEST_BINDING_FAILURE = "request_binding_failure"
+
+
+class MlxVlmRunnerError(ValueError):
+    """Typed local-run failure that preserves the existing ValueError API."""
+
+    kind: MlxVlmFailureKind
+
+    def __init__(self, kind: MlxVlmFailureKind, message: str) -> None:
+        super().__init__(message)
+        self.kind = kind
+
+
 class MlxVlmRunConfig(BaseModel):
-    """Explicit local runtime settings recorded with every smoke run."""
+    """Explicit local runtime settings recorded with every run."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
@@ -65,15 +87,22 @@ class MlxVlmSmokePlan(BaseModel):
     config: MlxVlmRunConfig
 
 
+MlxVlmRunBackend = Literal[
+    "local_mlx_vlm",
+    "shared_local_mlx_vlm",
+    "injected_test_double",
+]
+
+
 class MlxVlmSmokeRunRecord(BaseModel):
-    """One provenance record from a local, non-aggregated development inference."""
+    """One provenance record from a validated development inference."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    record_version: Literal["v0.1"] = "v0.1"
+    record_version: Literal["v0.2"] = "v0.2"
     run_id: str = Field(pattern=r"^mlx-vlm-[a-f0-9]{12}$")
     run_kind: Literal["local_mlx_vlm_development_smoke"] = "local_mlx_vlm_development_smoke"
-    run_backend: Literal["local_mlx_vlm", "injected_test_double"]
+    run_backend: MlxVlmRunBackend
     claim_scope: Literal["single_development_inference_only"] = "single_development_inference_only"
     performance_claim_supported: Literal[False] = False
     inference_performed: Literal[True] = True
@@ -90,6 +119,7 @@ class MlxVlmSmokeRunRecord(BaseModel):
 
 
 MlxVlmInference = Callable[[MlxVlmRunConfig, str, Path], str]
+MlxVlmSessionFactory = Callable[[MlxVlmRunConfig], MlxVlmInference]
 MlxLogitsProcessor = Callable[[Any, Any], Any]
 MlxStructuredOutputBuilder = Callable[
     [Any, dict[str, Any]],
@@ -186,7 +216,7 @@ def _require_apple_silicon() -> None:
     machine = platform.machine().lower()
     if platform.system() != "Darwin" or machine not in {"arm64", "arm64e"}:
         raise ValueError(
-            "The local MLX-VLM smoke runner requires macOS on Apple Silicon "
+            "The local MLX-VLM runner requires macOS on Apple Silicon "
             f"(detected {platform.system()} {platform.machine()})."
         )
 
@@ -202,7 +232,10 @@ def _extract_mlx_vlm_text(output: object) -> str:
         text = getattr(output, "text", None)
 
     if not isinstance(text, str) or not text.strip():
-        raise ValueError("MLX-VLM returned no non-empty text output.")
+        raise MlxVlmRunnerError(
+            MlxVlmFailureKind.EMPTY_RESPONSE,
+            "MLX-VLM returned no non-empty text output.",
+        )
 
     return text
 
@@ -218,19 +251,26 @@ def _build_autograder_logits_processor(
     return builder(tokenizer, schema)
 
 
-def _run_with_local_mlx_vlm(config: MlxVlmRunConfig, prompt: str, image_path: Path) -> str:
-    """Invoke MLX-VLM lazily so Linux CI never needs the optional dependency."""
+def create_mlx_vlm_session(config: MlxVlmRunConfig) -> MlxVlmInference:
+    """Load MLX-VLM once and return an inference callable reusable across batch cases."""
 
-    _require_apple_silicon()
+    try:
+        _require_apple_silicon()
+    except ValueError as error:
+        raise MlxVlmRunnerError(
+            MlxVlmFailureKind.MODEL_LOAD_FAILURE,
+            str(error),
+        ) from error
+
     try:
         mlx_vlm = import_module("mlx_vlm")
         prompt_utils = import_module("mlx_vlm.prompt_utils")
         structured = import_module("mlx_vlm.structured")
         utils = import_module("mlx_vlm.utils")
-
     except ModuleNotFoundError as error:
-        raise ValueError(
-            'MLX-VLM is not installed. Run: python -m pip install -e ".[dev,mlx]"'
+        raise MlxVlmRunnerError(
+            MlxVlmFailureKind.MODEL_LOAD_FAILURE,
+            'MLX-VLM is not installed. Run: python -m pip install -e ".[dev,mlx]"',
         ) from error
 
     load = cast(Callable[[str], tuple[Any, Any]], mlx_vlm.load)
@@ -245,32 +285,59 @@ def _run_with_local_mlx_vlm(config: MlxVlmRunConfig, prompt: str, image_path: Pa
     try:
         model, processor = load(config.model_id)
         model_config = load_config(config.model_id)
-
-        json_logits_processor = _build_autograder_logits_processor(
-            processor,
-            build_json_schema_logits_processor,
-        )
-
-        formatted_prompt = apply_chat_template(
-            processor,
-            model_config,
-            prompt,
-            num_images=1,
-        )
-        output = generate(
-            model,
-            processor,
-            formatted_prompt,
-            image=[str(image_path)],
-            verbose=False,
-            max_tokens=config.max_tokens,
-            temperature=config.temperature,
-            logits_processors=[json_logits_processor],
-        )
     except Exception as error:
-        raise ValueError(f"MLX-VLM inference failed: {error}") from error
+        raise MlxVlmRunnerError(
+            MlxVlmFailureKind.MODEL_LOAD_FAILURE,
+            f"MLX-VLM model/session initialization failed: {error}",
+        ) from error
 
-    return _extract_mlx_vlm_text(output)
+    def session_inference(
+        runtime_config: MlxVlmRunConfig,
+        prompt: str,
+        image_path: Path,
+    ) -> str:
+        if runtime_config != config:
+            raise ValueError("Shared MLX-VLM session configuration changed during a batch run.")
+
+        try:
+            # Build a fresh constrained decoder for every response so parser state is
+            # never shared across independent development cases.
+            json_logits_processor = _build_autograder_logits_processor(
+                processor,
+                build_json_schema_logits_processor,
+            )
+            formatted_prompt = apply_chat_template(
+                processor,
+                model_config,
+                prompt,
+                num_images=1,
+            )
+            output = generate(
+                model,
+                processor,
+                formatted_prompt,
+                image=[str(image_path)],
+                verbose=False,
+                max_tokens=runtime_config.max_tokens,
+                temperature=runtime_config.temperature,
+                logits_processors=[json_logits_processor],
+            )
+        except Exception as error:
+            raise MlxVlmRunnerError(
+                MlxVlmFailureKind.INFERENCE_FAILURE,
+                f"MLX-VLM inference failed: {error}",
+            ) from error
+
+        return _extract_mlx_vlm_text(output)
+
+    return session_inference
+
+
+def _run_with_local_mlx_vlm(config: MlxVlmRunConfig, prompt: str, image_path: Path) -> str:
+    """Run one standalone local inference using a one-call session."""
+
+    inference = create_mlx_vlm_session(config)
+    return inference(config, prompt, image_path)
 
 
 def _parse_vlm_output(raw_model_output: str, request: AutograderRequest) -> AutograderResponse:
@@ -279,20 +346,38 @@ def _parse_vlm_output(raw_model_output: str, request: AutograderRequest) -> Auto
     try:
         payload: object = json.loads(raw_model_output)
     except json.JSONDecodeError as error:
-        raise ValueError(
-            "MLX-VLM output must be exactly one JSON object with no Markdown fence or prose."
+        raise MlxVlmRunnerError(
+            MlxVlmFailureKind.JSON_PARSE_FAILURE,
+            "MLX-VLM output must be exactly one JSON object with no Markdown fence or prose.",
         ) from error
+
     if not isinstance(payload, dict):
-        raise ValueError("MLX-VLM output must be a JSON object.")
+        raise MlxVlmRunnerError(
+            MlxVlmFailureKind.JSON_PARSE_FAILURE,
+            "MLX-VLM output must be a JSON object.",
+        )
+
     try:
         response = AutograderResponse.model_validate(payload)
     except ValidationError as error:
-        raise ValueError(
-            f"MLX-VLM output violates the autograder response contract: {error}"
+        raise MlxVlmRunnerError(
+            MlxVlmFailureKind.SCHEMA_VALIDATION_FAILURE,
+            f"MLX-VLM output violates the autograder response contract: {error}",
         ) from error
+
     if response.result_source is not AutograderResponseSource.VLM_OUTPUT:
-        raise ValueError("MLX-VLM output must declare result_source 'vlm_output'.")
-    return validate_autograder_response(response, request)
+        raise MlxVlmRunnerError(
+            MlxVlmFailureKind.SCHEMA_VALIDATION_FAILURE,
+            "MLX-VLM output must declare result_source 'vlm_output'.",
+        )
+
+    try:
+        return validate_autograder_response(response, request)
+    except ValueError as error:
+        raise MlxVlmRunnerError(
+            MlxVlmFailureKind.REQUEST_BINDING_FAILURE,
+            f"MLX-VLM output failed request binding: {error}",
+        ) from error
 
 
 def _normalized_execution_time(executed_at: datetime | None) -> datetime:
@@ -321,9 +406,10 @@ def run_mlx_vlm_smoke(
     asset_root: Path,
     *,
     inference: MlxVlmInference | None = None,
+    inference_backend: MlxVlmRunBackend | None = None,
     executed_at: datetime | None = None,
 ) -> MlxVlmSmokeRunRecord:
-    """Run and validate one local development-only VLM response without aggregation."""
+    """Run and validate one development-only VLM response without aggregation."""
 
     prepared = _prepare_mlx_vlm_smoke(
         asset_id,
@@ -332,15 +418,32 @@ def run_mlx_vlm_smoke(
         scenario_matrix_path,
         asset_root,
     )
-    inference_function = inference or _run_with_local_mlx_vlm
+
+    inference_function: MlxVlmInference
+
+    if inference is None:
+        if inference_backend is not None:
+            raise ValueError("inference_backend requires an injected inference callable.")
+        inference_function = _run_with_local_mlx_vlm
+        run_backend: MlxVlmRunBackend = "local_mlx_vlm"
+    else:
+        inference_function = inference
+        run_backend = inference_backend or "injected_test_double"
+        if run_backend == "local_mlx_vlm":
+            raise ValueError(
+                "Injected inference cannot declare the standalone local_mlx_vlm backend."
+            )
+
     raw_model_output = inference_function(config, prepared.prompt, prepared.image_path)
     response = _parse_vlm_output(raw_model_output, prepared.plan.request)
-    is_test_double = inference is not None
+
     return MlxVlmSmokeRunRecord(
         run_id=f"mlx-vlm-{uuid.uuid4().hex[:12]}",
-        run_backend="injected_test_double" if is_test_double else "local_mlx_vlm",
+        run_backend=run_backend,
         executed_at=_normalized_execution_time(executed_at),
-        runner_version="test-double" if is_test_double else _installed_mlx_vlm_version(),
+        runner_version=(
+            "test-double" if run_backend == "injected_test_double" else _installed_mlx_vlm_version()
+        ),
         config=config,
         request=prepared.plan.request,
         image_sha256=prepared.plan.image_sha256,
@@ -375,7 +478,7 @@ def summarize_mlx_vlm_smoke_run(
     record: MlxVlmSmokeRunRecord,
     output_path: Path,
 ) -> dict[str, object]:
-    """Print run provenance without exposing rationales or aggregating a performance metric."""
+    """Print run provenance without exposing rationales or aggregating performance."""
 
     return {
         "run_record": str(output_path),

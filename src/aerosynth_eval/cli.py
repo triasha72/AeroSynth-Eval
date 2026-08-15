@@ -40,6 +40,8 @@ from aerosynth_eval.procedural_corpus import materialize_procedural_corpus
 from aerosynth_eval.rubric import inspection_rubric
 from aerosynth_eval.scenario_matrix import load_scenario_matrix, validate_scenario_matrix
 from aerosynth_eval.vlm_batch_runner import (
+    DEFAULT_BATCH_MAX_RETRIES,
+    VlmBatchRetryPolicy,
     create_development_vlm_batch_plan,
     run_development_vlm_batch,
     summarize_development_vlm_batch,
@@ -71,7 +73,7 @@ def info() -> None:
         {
             "project": "AeroSynth-Eval",
             "version": __version__,
-            "status": "development_vlm_batch_runner",
+            "status": "development_batch_reliability",
             "scope": "Synthetic aerospace inspection-image evaluation",
         }
     )
@@ -305,6 +307,15 @@ def run_vlm_batch_command(
         float,
         typer.Option("--temperature", help="Sampling temperature for each development case."),
     ] = DEFAULT_TEMPERATURE,
+    max_retries: Annotated[
+        int,
+        typer.Option(
+            "--max-retries",
+            help="Bounded retries for transient inference failures only.",
+            min=0,
+            max=3,
+        ),
+    ] = DEFAULT_BATCH_MAX_RETRIES,
     output_directory: Annotated[
         Path,
         typer.Option(
@@ -363,6 +374,7 @@ def run_vlm_batch_command(
             max_tokens=max_tokens,
             temperature=temperature,
         )
+        retry_policy = VlmBatchRetryPolicy(max_retries=max_retries)
 
         if dry_run:
             plan = create_development_vlm_batch_plan(
@@ -371,6 +383,7 @@ def run_vlm_batch_command(
                 registry,
                 scenario_matrix,
                 asset_root,
+                retry_policy=retry_policy,
             )
             _emit({"batch_plan": plan.model_dump(mode="json")})
             return
@@ -381,6 +394,7 @@ def run_vlm_batch_command(
             registry,
             scenario_matrix,
             asset_root,
+            retry_policy=retry_policy,
         )
         output_path = write_development_vlm_batch_record(
             record,
