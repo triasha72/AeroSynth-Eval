@@ -20,11 +20,9 @@ try:
     import tensorflow as tf  # type: ignore[import-not-found]
 except ModuleNotFoundError as error:
     raise SystemExit(
-        
-            "TensorFlow is required only for this converter. "
-            "Install a Python-3.12-compatible TensorFlow build "
-            "in a separate environment if needed."
-        
+        "TensorFlow is required only for this converter. "
+        "Install a Python-3.12-compatible TensorFlow build "
+        "in a separate environment if needed."
     ) from error
 feature_description = {
     "filename": tf.io.FixedLenFeature([], tf.string),
