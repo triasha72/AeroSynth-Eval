@@ -39,12 +39,19 @@ from aerosynth_eval.mlx_vlm_runner import (
 from aerosynth_eval.procedural_corpus import materialize_procedural_corpus
 from aerosynth_eval.rubric import inspection_rubric
 from aerosynth_eval.scenario_matrix import load_scenario_matrix, validate_scenario_matrix
+from aerosynth_eval.vlm_batch_runner import (
+    create_development_vlm_batch_plan,
+    run_development_vlm_batch,
+    summarize_development_vlm_batch,
+    write_development_vlm_batch_record,
+)
 
 DEFAULT_SCENARIO_MATRIX = Path("data/design/v0_1_scenario_matrix.csv")
 DEFAULT_ASSET_REGISTRY = Path("data/registry/v0_1_asset_registry.jsonl")
 DEFAULT_ASSET_ROOT = Path("data")
 DEFAULT_ANNOTATION_QUEUE = Path("data/annotations/v0_1_development_annotation_queue.csv")
 DEFAULT_MLX_VLM_OUTPUT_DIRECTORY = Path("outputs/mlx_vlm")
+DEFAULT_VLM_BATCH_OUTPUT_DIRECTORY = Path("outputs/vlm_batches")
 
 app = typer.Typer(
     add_completion=False,
@@ -64,7 +71,7 @@ def info() -> None:
         {
             "project": "AeroSynth-Eval",
             "version": __version__,
-            "status": "local_mlx_vlm_runner",
+            "status": "development_vlm_batch_runner",
             "scope": "Synthetic aerospace inspection-image evaluation",
         }
     )
@@ -271,6 +278,124 @@ def run_mlx_vlm_smoke_command(
         raise typer.BadParameter(str(error), param_hint="asset_id") from error
 
     _emit(summarize_mlx_vlm_smoke_run(record, output_path))
+
+
+@app.command(name="run-vlm-batch")
+def run_vlm_batch_command(
+    queue: Annotated[
+        Path,
+        typer.Option(
+            "--queue",
+            help="Path to the fixed development-only evaluation queue.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ] = DEFAULT_ANNOTATION_QUEUE,
+    model: Annotated[
+        str,
+        typer.Option("--model", help="MLX or Hugging Face model identifier to load locally."),
+    ] = DEFAULT_MLX_VLM_MODEL,
+    max_tokens: Annotated[
+        int,
+        typer.Option("--max-tokens", help="Maximum output tokens for each development case."),
+    ] = DEFAULT_MAX_TOKENS,
+    temperature: Annotated[
+        float,
+        typer.Option("--temperature", help="Sampling temperature for each development case."),
+    ] = DEFAULT_TEMPERATURE,
+    output_directory: Annotated[
+        Path,
+        typer.Option(
+            "--output-directory",
+            help="Ignored directory where the batch provenance record is written.",
+            file_okay=False,
+            dir_okay=True,
+        ),
+    ] = DEFAULT_VLM_BATCH_OUTPUT_DIRECTORY,
+    dry_run: Annotated[
+        bool,
+        typer.Option(
+            "--dry-run",
+            help="Validate the complete development batch without running MLX-VLM.",
+        ),
+    ] = False,
+    registry: Annotated[
+        Path,
+        typer.Option(
+            "--registry",
+            help="Path to the JSON Lines synthetic-image asset registry.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ] = DEFAULT_ASSET_REGISTRY,
+    scenario_matrix: Annotated[
+        Path,
+        typer.Option(
+            "--scenario-matrix",
+            help="Path to the frozen CSV scenario matrix.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ] = DEFAULT_SCENARIO_MATRIX,
+    asset_root: Annotated[
+        Path,
+        typer.Option(
+            "--asset-root",
+            help="Directory containing the registry's generated image paths.",
+            exists=True,
+            file_okay=False,
+            dir_okay=True,
+            readable=True,
+        ),
+    ] = DEFAULT_ASSET_ROOT,
+) -> None:
+    """Run or inspect the fixed development-only VLM evaluation batch."""
+
+    try:
+        config = MlxVlmRunConfig(
+            model_id=model,
+            max_tokens=max_tokens,
+            temperature=temperature,
+        )
+
+        if dry_run:
+            plan = create_development_vlm_batch_plan(
+                queue,
+                config,
+                registry,
+                scenario_matrix,
+                asset_root,
+            )
+            _emit({"batch_plan": plan.model_dump(mode="json")})
+            return
+
+        record = run_development_vlm_batch(
+            queue,
+            config,
+            registry,
+            scenario_matrix,
+            asset_root,
+        )
+        output_path = write_development_vlm_batch_record(
+            record,
+            output_directory,
+        )
+        summary = summarize_development_vlm_batch(record)
+    except ValueError as error:
+        raise typer.BadParameter(str(error), param_hint="queue") from error
+
+    _emit(
+        {
+            "batch_record": str(output_path),
+            **summary.model_dump(mode="json"),
+        }
+    )
 
 
 @app.command(name="validate-manifest")
