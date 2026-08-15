@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aerosynth-eval"
-version = "0.24.0"
+version = "0.25.0"
 description = "Human-aligned evaluation tooling for synthetic aerospace inspection imagery."
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
@@ -29,7 +29,7 @@ benchmark = [
   "datasets>=4.0,<6.0",
 ]
 train = [
-  "mlx-vlm[train]==0.5.0",
+  "mlx-vlm==0.5.0",
 ]
 
 [project.scripts]
