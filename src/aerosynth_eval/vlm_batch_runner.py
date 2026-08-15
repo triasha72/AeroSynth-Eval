@@ -22,9 +22,11 @@ from aerosynth_eval.asset_registry import (
     load_asset_registry,
 )
 from aerosynth_eval.contracts import DatasetSplit
+from aerosynth_eval.evaluator_output import RejectedOutputProvenance
 from aerosynth_eval.mlx_vlm_runner import (
     MlxVlmFailureKind,
     MlxVlmInference,
+    MlxVlmRequestBoundInference,
     MlxVlmRunBackend,
     MlxVlmRunConfig,
     MlxVlmRunnerError,
@@ -73,7 +75,7 @@ class DevelopmentVlmBatchPlan(BaseModel):
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    record_version: Literal["v0.2"] = "v0.2"
+    record_version: Literal["v0.3"] = "v0.3"
     batch_kind: Literal["development_vlm_batch"] = "development_vlm_batch"
     claim_scope: Literal["development_execution_reliability_only"] = (
         "development_execution_reliability_only"
@@ -81,6 +83,7 @@ class DevelopmentVlmBatchPlan(BaseModel):
     performance_claim_supported: Literal[False] = False
     inference_performed: Literal[False] = False
     shared_session_enabled: Literal[True] = True
+    request_bound_output_enabled: Literal[True] = True
     queue_id: str = Field(min_length=3, max_length=64)
     split: DatasetSplit = DatasetSplit.DEVELOPMENT
     asset_ids: tuple[str, ...] = Field(min_length=1)
@@ -116,6 +119,7 @@ class VlmBatchCaseRecord(BaseModel):
     failure_kind: VlmBatchFailureKind | None = None
     run_record: MlxVlmSmokeRunRecord | None = None
     error: str | None = Field(default=None, max_length=2_000)
+    rejected_output: RejectedOutputProvenance | None = None
 
     @model_validator(mode="after")
     def validate_outcome(self) -> Self:
@@ -126,7 +130,11 @@ class VlmBatchCaseRecord(BaseModel):
                 raise ValueError("Successful batch cases must record at least one attempt.")
             if self.run_record is None:
                 raise ValueError("Successful batch cases must include a run record.")
-            if self.error is not None or self.failure_kind is not None:
+            if (
+                self.error is not None
+                or self.failure_kind is not None
+                or self.rejected_output is not None
+            ):
                 raise ValueError("Successful batch cases must not include failure metadata.")
             if self.run_record.request.asset_id != self.asset_id:
                 raise ValueError("Batch case asset_id disagrees with its run record.")
@@ -152,7 +160,7 @@ class DevelopmentVlmBatchRunRecord(BaseModel):
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    record_version: Literal["v0.2"] = "v0.2"
+    record_version: Literal["v0.3"] = "v0.3"
     batch_id: str = Field(pattern=r"^vlm-batch-[a-f0-9]{12}$")
     batch_kind: Literal["development_vlm_batch"] = "development_vlm_batch"
     claim_scope: Literal["development_execution_reliability_only"] = (
@@ -161,6 +169,7 @@ class DevelopmentVlmBatchRunRecord(BaseModel):
     performance_claim_supported: Literal[False] = False
     inference_performed: bool
     session_reused: bool
+    request_bound_output_enabled: Literal[True] = True
     session_setup_seconds: float = Field(ge=0.0)
     batch_elapsed_seconds: float = Field(ge=0.0)
     executed_at: datetime
@@ -207,6 +216,7 @@ class DevelopmentVlmBatchSummary(BaseModel):
     performance_claim_supported: Literal[False] = False
     inference_performed: bool
     session_reused: bool
+    request_bound_output_enabled: Literal[True] = True
     session_setup_seconds: float = Field(ge=0.0)
     batch_elapsed_seconds: float = Field(ge=0.0)
     cases_scheduled: int = Field(ge=1)
@@ -215,6 +225,7 @@ class DevelopmentVlmBatchSummary(BaseModel):
     cases_failed: int = Field(ge=0)
     total_attempts: int = Field(ge=0)
     retry_attempts: int = Field(ge=0)
+    rejected_outputs_retained: int = Field(ge=0)
     execution_success_rate: float = Field(ge=0.0, le=1.0)
     failure_counts: dict[VlmBatchFailureKind, int]
 
@@ -351,7 +362,7 @@ def run_development_vlm_batch(
     retry_policy: VlmBatchRetryPolicy | None = None,
     executed_at: datetime | None = None,
 ) -> DevelopmentVlmBatchRunRecord:
-    """Run the fixed queue with one shared session, typed failures, and bounded retries."""
+    """Run the fixed queue with request-bound generation and typed reliability."""
 
     if inference is not None and session_factory is not None:
         raise ValueError("Provide either inference or session_factory, not both.")
@@ -372,12 +383,13 @@ def run_development_vlm_batch(
     session_setup_seconds = 0.0
     session_reused = False
     inference_backend: MlxVlmRunBackend | None = None
+    active_request_bound_inference: MlxVlmRequestBoundInference | None = None
 
     if inference is None:
         factory: MlxVlmSessionFactory = session_factory or create_mlx_vlm_session
         session_started_at = perf_counter()
         try:
-            active_inference = factory(config)
+            active_request_bound_inference = factory(config)
         except MlxVlmRunnerError as error:
             session_setup_seconds = _elapsed_seconds(session_started_at)
             return _model_load_failure_record(
@@ -404,8 +416,6 @@ def run_development_vlm_batch(
         session_setup_seconds = _elapsed_seconds(session_started_at)
         session_reused = True
         inference_backend = "shared_local_mlx_vlm"
-    else:
-        active_inference = inference
 
     cases: list[VlmBatchCaseRecord] = []
 
@@ -422,7 +432,8 @@ def run_development_vlm_batch(
                     registry_path,
                     scenario_matrix_path,
                     asset_root,
-                    inference=active_inference,
+                    inference=inference,
+                    request_bound_inference=active_request_bound_inference,
                     inference_backend=inference_backend,
                     executed_at=executed_at,
                 )
@@ -445,6 +456,7 @@ def run_development_vlm_batch(
                         elapsed_seconds=_elapsed_seconds(case_started_at),
                         failure_kind=failure_kind,
                         error=str(error),
+                        rejected_output=error.rejected_output,
                     )
                 )
                 break
@@ -522,6 +534,7 @@ def summarize_development_vlm_batch(
     failed = scheduled - succeeded
     total_attempts = sum(case.attempt_count for case in record.cases)
     retry_attempts = sum(max(0, case.attempt_count - 1) for case in record.cases)
+    rejected_outputs_retained = sum(case.rejected_output is not None for case in record.cases)
 
     failure_counts = {
         failure_kind: sum(case.failure_kind is failure_kind for case in record.cases)
@@ -543,6 +556,7 @@ def summarize_development_vlm_batch(
         cases_failed=failed,
         total_attempts=total_attempts,
         retry_attempts=retry_attempts,
+        rejected_outputs_retained=rejected_outputs_retained,
         execution_success_rate=succeeded / scheduled,
         failure_counts=failure_counts,
     )

@@ -2,11 +2,11 @@
 
 ## Milestone
 
-AeroSynth-Eval v0.11 adds the first reliability layer around the development
-batch runner introduced in v0.10.
+AeroSynth-Eval v0.12 extends the development batch reliability layer with
+request-bound structured generation and retained rejected-output provenance.
 
-The goal is to make repeated local development evaluation observable and
-recoverable enough to support later evaluator validation.
+The batch runner remains focused on operational evaluation-pipeline reliability.
+It does not compute evaluator-quality metrics.
 
 ## Shared MLX-VLM session
 
@@ -14,28 +14,56 @@ The real batch initializes MLX-VLM once, retaining the loaded model, processor,
 model configuration, generation function, and chat-template adapter across all
 12 development cases.
 
-The structured JSON decoder is intentionally rebuilt per case. This preserves
-case independence while avoiding repeated model loading.
+A fresh JSON-schema logits processor is constructed for every case.
+
+In v0.12 that schema is also bound to the exact request identity before the
+decoder is created.
+
+## Request-bound identity fields
+
+For every case, structured decoding pins:
+
+- exact `asset_id`;
+- exact `scenario_id`;
+- exact `rubric_version`; and
+- `result_source = vlm_output`.
+
+This addresses identity drift observed during the first v0.11 real development
+batch.
+
+The strict response-binding validator remains active after generation.
 
 ## Typed failure taxonomy
 
-The batch persists a failure category rather than only a free-form error string.
+The batch persists:
 
-| Failure kind | Meaning | Retried? |
-| --- | --- | --- |
-| `model_load_failure` | local model/session could not initialize | No |
-| `inference_failure` | generation raised a runtime error | Yes, bounded |
-| `empty_response` | generation returned no usable text | No |
-| `json_parse_failure` | output was not one exact JSON object | No |
-| `schema_validation_failure` | JSON violated the frozen response schema | No |
-| `request_binding_failure` | response disagreed with the exact request | No |
-| `preparation_failure` | asset/request/provenance preparation failed | No |
+- `model_load_failure`
+- `inference_failure`
+- `empty_response`
+- `json_parse_failure`
+- `schema_validation_failure`
+- `request_binding_failure`
+- `preparation_failure`
+
+Only `inference_failure` is retryable.
+
+## Rejected-output provenance
+
+For JSON, schema, and request-binding failures, the batch case can now retain a
+bounded `rejected_output` object with:
+
+- `preview`
+- `sha256`
+- `char_count`
+- `truncated`
+
+The batch summary additionally reports `rejected_outputs_retained`.
+
+Rejected text remains diagnostic evidence and is never silently repaired.
 
 ## Retry policy
 
-Retries apply only to transient inference failures.
-
-The default is:
+The default remains:
 
 ```text
 max_retries = 1
@@ -43,8 +71,7 @@ max_retries = 1
 
 The accepted range is 0 through 3.
 
-This avoids converting deterministic evaluator or data-contract failures into
-repeated model calls.
+Retries are deliberately limited to transient inference failures.
 
 ## Reliability provenance
 
@@ -52,41 +79,45 @@ Each case records:
 
 - attempt count;
 - elapsed seconds;
-- final success/failure status;
+- final status;
 - typed failure kind when unsuccessful;
-- free-form diagnostic text when unsuccessful; and
-- the complete validated single-case run record when successful.
+- diagnostic error text;
+- bounded rejected-output provenance when available; and
+- complete validated single-case provenance when successful.
 
 The batch records:
 
 - whether inference occurred;
-- whether one shared local session was reused;
+- whether the shared session was reused;
+- whether request-bound generation was enabled;
 - session initialization time;
 - total elapsed time;
-- the retry policy; and
-- all per-case records.
+- retry policy; and
+- all case records.
 
-## Model-load failures
+## Validation
 
-Model initialization is a batch-level dependency.
+Before merging v0.12:
 
-If it fails, AeroSynth-Eval records all scheduled development cases as
-`model_load_failure` with `attempt_count = 0`. This distinguishes a batch that
-could not begin inference from a batch where individual cases failed later.
+```bash
+python -m ruff format --check .
+python -m ruff check .
+python -m mypy src/aerosynth_eval
+python -m pytest -q
+aerosynth-eval info
+aerosynth-eval run-vlm-batch --max-retries 1 --dry-run
+git diff --check
+```
+
+After merge, run one real development batch for regression comparison.
 
 ## Scope
 
-These additions measure execution reliability.
+AeroSynth-Eval remains an independent research prototype using public,
+synthetic, or self-generated data.
 
-They do not establish:
+It is not an operational inspection, maintenance, airworthiness,
+defect-diagnosis, or certification system.
 
-- evaluator accuracy;
-- human agreement;
-- calibration;
-- model superiority;
-- inspection validity; or
-- protected-test performance.
-
-The next research milestones should use successful development batch outputs
-together with independent human annotations before model-quality claims are
-introduced.
+Request-bound generation and structured-response reliability do not establish
+evaluator accuracy. Human-reference validation remains a later milestone.

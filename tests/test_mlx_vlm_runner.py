@@ -1,3 +1,4 @@
+import hashlib
 import json
 from datetime import UTC, datetime
 from pathlib import Path
@@ -5,14 +6,18 @@ from typing import Any
 
 import pytest
 
+from aerosynth_eval.autograder import build_autograder_request
 from aerosynth_eval.contracts import DatasetSplit
 from aerosynth_eval.mlx_vlm_runner import (
     DEFAULT_MAX_TOKENS,
     DEFAULT_MLX_VLM_MODEL,
     DEFAULT_TEMPERATURE,
     MlxLogitsProcessor,
+    MlxVlmFailureKind,
     MlxVlmRunConfig,
+    MlxVlmRunnerError,
     _build_autograder_logits_processor,
+    _build_request_bound_autograder_logits_processor,
     _extract_mlx_vlm_text,
     create_mlx_vlm_smoke_plan,
     run_mlx_vlm_smoke,
@@ -65,14 +70,43 @@ def test_build_autograder_logits_processor_uses_response_schema() -> None:
     assert isinstance(schema, dict)
     assert schema["type"] == "object"
 
+
+def test_request_bound_logits_processor_uses_exact_request_identity() -> None:
+    processor = _FakeProcessor()
+    captured: dict[str, object] = {}
+    request = build_autograder_request(
+        DEVELOPMENT_ASSET_ID,
+        REGISTRY_PATH,
+        MATRIX_PATH,
+    )
+
+    def fake_logits_processor(tokens: Any, logits: Any) -> Any:
+        return logits
+
+    def fake_builder(
+        tokenizer: Any,
+        schema: dict[str, Any],
+    ) -> MlxLogitsProcessor:
+        captured["tokenizer"] = tokenizer
+        captured["schema"] = schema
+        return fake_logits_processor
+
+    result = _build_request_bound_autograder_logits_processor(
+        processor,
+        fake_builder,
+        request,
+    )
+
+    assert result is fake_logits_processor
+    assert captured["tokenizer"] is processor.tokenizer
+
+    schema = captured["schema"]
+    assert isinstance(schema, dict)
     properties = schema["properties"]
-    assert "asset_id" in properties
-    assert "scenario_id" in properties
-    assert "result_source" in properties
-    assert "decision" in properties
-    assert "confidence" in properties
-    assert "scores" in properties
-    assert "summary" in properties
+    assert properties["asset_id"]["enum"] == [request.asset_id]
+    assert properties["scenario_id"]["enum"] == [request.scenario_id]
+    assert properties["rubric_version"]["enum"] == [request.rubric_version]
+    assert properties["result_source"]["enum"] == ["vlm_output"]
 
 
 def test_extract_mlx_vlm_text_accepts_generation_result_shape() -> None:
@@ -197,11 +231,13 @@ def test_run_records_validated_test_double_without_aggregating_metrics(tmp_path:
     assert "scores" not in summary
 
 
-def test_run_rejects_non_json_model_output() -> None:
-    def invalid_inference(_: MlxVlmRunConfig, __: str, ___: Path) -> str:
-        return "```json\n{}\n```"
+def test_run_rejects_non_json_model_output_and_retains_provenance() -> None:
+    raw = "```json\n{}\n```"
 
-    with pytest.raises(ValueError, match="exactly one JSON object"):
+    def invalid_inference(_: MlxVlmRunConfig, __: str, ___: Path) -> str:
+        return raw
+
+    with pytest.raises(MlxVlmRunnerError, match="exactly one JSON object") as exc_info:
         run_mlx_vlm_smoke(
             DEVELOPMENT_ASSET_ID,
             _config(),
@@ -210,3 +246,33 @@ def test_run_rejects_non_json_model_output() -> None:
             ASSET_ROOT,
             inference=invalid_inference,
         )
+
+    error = exc_info.value
+    assert error.kind is MlxVlmFailureKind.JSON_PARSE_FAILURE
+    assert error.rejected_output is not None
+    assert error.rejected_output.preview == raw
+    assert error.rejected_output.sha256 == hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+def test_run_rejects_wrong_asset_identity_and_retains_provenance() -> None:
+    payload = json.loads(_valid_vlm_output())
+    payload["asset_id"] = "fuselage-corrosion-close-diffuse"
+    raw = json.dumps(payload)
+
+    def wrong_identity_inference(_: MlxVlmRunConfig, __: str, ___: Path) -> str:
+        return raw
+
+    with pytest.raises(MlxVlmRunnerError, match="request binding") as exc_info:
+        run_mlx_vlm_smoke(
+            DEVELOPMENT_ASSET_ID,
+            _config(),
+            REGISTRY_PATH,
+            MATRIX_PATH,
+            ASSET_ROOT,
+            inference=wrong_identity_inference,
+        )
+
+    error = exc_info.value
+    assert error.kind is MlxVlmFailureKind.REQUEST_BINDING_FAILURE
+    assert error.rejected_output is not None
+    assert error.rejected_output.preview == raw
