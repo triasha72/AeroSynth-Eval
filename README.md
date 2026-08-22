@@ -31,13 +31,34 @@ research dataset quality review and must not replace qualified human inspection.
 
 ## Current status
 
-v0.9 adds an optional local MLX-VLM smoke runner for one generated development
-asset at a time. It validates frozen corpus provenance and image integrity,
-attaches the image to the strict v0.8 contract, and records a local response
-only after exact schema and request binding pass. It does not produce
-human-rater agreement, calibration, consensus, aggregate VLM evaluation,
-accuracy, or fine-tuning evidence. The assets remain deliberately simple
-synthetic test images—not operational inspection imagery or physical simulations.
+The package is currently at `v0.26.0`. The repository now provides an
+end-to-end evaluation engineering layer: frozen synthetic scenarios and assets,
+typed evaluator contracts, local and batched VLM execution, human-annotation
+ingestion, agreement and adjudication workflows, public preference benchmarks,
+pairwise and multi-judge evaluation, confidence calibration, human-alignment
+analysis, preference-supervised adaptation contracts, experiment selection, and
+deterministic distributed execution.
+
+Those capabilities are infrastructure, not evidence that every external gate has
+been completed. The repository contains no genuine completed human-rating set,
+adjudicated gold reference, aggregate protected-test VLM result, or demonstrated
+fine-tuning improvement. Features that depend on those inputs remain gated until
+real data or compute-backed run artifacts exist. The bundled images are simple
+synthetic test assets—not operational inspection imagery or physical simulations.
+
+### Capability map
+
+| Layer | Implemented boundary |
+|---|---|
+| Benchmark integrity | 48 frozen scenarios, 48 checksummed assets, and a 36/12 development/protected-test split |
+| Model execution | Single-asset MLX-VLM smoke runs plus validated, resumable batch execution |
+| Human workflow | Rater templates, ingestion, agreement analysis, manual adjudication, and human-alignment contracts |
+| Judge evaluation | GenAI-Bench/RichHF adapters, pairwise and multi-judge comparison, preference metrics, and calibration |
+| Adaptation | Leakage-controlled preference-data preparation and MLX-VLM LoRA/QLoRA training interfaces |
+| Experiment systems | Registry-based comparison, explicit selection policy, deterministic sharding, caching, and reduction |
+
+The [project notes](docs/) state the data, compute, and human-review gates for
+each layer. A merged implementation is not treated as a measured evaluator win.
 
 ## Benchmark foundation
 
@@ -107,6 +128,29 @@ single response remains an individual research artifact, not an evaluator-qualit
 result. Read [the local-runner note](docs/MLX_VLM_DEVELOPMENT_RUNNER.md) before
 installing MLX-VLM or running the command.
 
+## Evaluation and scaling layers
+
+The later evaluation layers are organized around explicit boundaries:
+
+- public preference datasets stay separate from AeroSynth's internal protected
+  test split;
+- real human-agreement reports require two genuine independent submissions;
+- adjudication is manual and never auto-filled from software fixtures;
+- human-alignment analysis requires a completed adjudicated reference and real
+  evaluator outputs;
+- preference adaptation fits only on the training partition, uses validation
+  for selection, and reserves held-out data for final comparison; and
+- distributed runs preserve model, dataset, prompt, code, shard, and cache
+  provenance before deterministic reduction.
+
+See the focused notes for
+[preference benchmarking](docs/PR17_PREFERENCE_BENCHMARK.md),
+[human agreement](docs/PR24_HUMAN_AGREEMENT.md),
+[human alignment](docs/PR26_HUMAN_ALIGNMENT.md),
+[evaluator adaptation](docs/PR27_EVALUATOR_ADAPTATION.md),
+[experiment selection](docs/PR28_EXPERIMENT_HILLCLIMBING.md), and
+[distributed execution](docs/PR29_DISTRIBUTED_EXECUTION.md).
+
 ## Development
 
 ```bash
@@ -145,9 +189,7 @@ aerosynth-eval run-mlx-vlm-smoke \
   --dry-run
 ```
 
-GitHub Actions runs formatting, linting, type checking, tests, and validation of
-the bundled manifest, scenario design, provenance, materialized corpus, and
-development annotation queue, as well as the synthetic demo fixtures, for pushes
-and pull requests targeting `main`. It also checks the development-only prompt
-preview, synthetic autograder-response contract fixture, and the no-inference
-plan for the optional local MLX-VLM runner.
+GitHub Actions runs formatting, linting, strict type checking, tests, and the
+repository's synthetic smoke validations for pushes and pull requests targeting
+`main`. CI validates software behavior and frozen inputs; it does not convert
+synthetic fixtures into human, model-quality, or operational evidence.
