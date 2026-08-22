@@ -29,22 +29,21 @@ This is an independent research prototype. It is not an airworthiness,
 maintenance-release, defect-diagnosis, or certification system. Its outputs support
 research dataset quality review and must not replace qualified human inspection.
 
-## Current status
+## What was built and why
 
-The package is currently at `v0.26.0`. The repository now provides an
-end-to-end evaluation engineering layer: frozen synthetic scenarios and assets,
-typed evaluator contracts, local and batched VLM execution, human-annotation
-ingestion, agreement and adjudication workflows, public preference benchmarks,
-pairwise and multi-judge evaluation, confidence calibration, human-alignment
-analysis, preference-supervised adaptation contracts, experiment selection, and
+The project builds an evaluation path from frozen synthetic scenarios to
+auditable model and human comparisons. It combines typed evaluator contracts,
+local and batched VLM execution, human-annotation ingestion, agreement and
+adjudication workflows, public preference benchmarks, pairwise and multi-judge
+evaluation, confidence calibration, human-alignment analysis,
+preference-supervised adaptation contracts, experiment selection, and
 deterministic distributed execution.
 
-Those capabilities are infrastructure, not evidence that every external gate has
-been completed. The repository contains no genuine completed human-rating set,
-adjudicated gold reference, aggregate protected-test VLM result, or demonstrated
-fine-tuning improvement. Features that depend on those inputs remain gated until
-real data or compute-backed run artifacts exist. The bundled images are simple
-synthetic test assets—not operational inspection imagery or physical simulations.
+These layers were separated so software fixtures cannot be mistaken for human
+or model evidence. The repository contains no genuine completed human-rating
+set, adjudicated gold reference, aggregate protected-test VLM result, or
+demonstrated fine-tuning improvement. The bundled images are simple synthetic
+test assets—not operational inspection imagery or physical simulations.
 
 ### Capability map
 
