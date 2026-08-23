@@ -23,3 +23,16 @@ available for execution on the device`.
 The run closes the Linux/CUDA execution gap and provides real model outputs. It
 does not establish human alignment. Accuracy claims still require two genuine
 independent raters, adjudication, and comparison against the frozen reference.
+
+## First measured P100 batch
+
+The first completed free-GPU batch attempted all 12 fixed development cases
+with one reused Qwen2-VL session. Eight responses passed the request-bound
+schema and four were retained as JSON-parse failures, for an execution success
+rate of 66.7%. The result supports the execution path and exposes a remaining
+structured-generation limitation; it does not support an evaluator-quality or
+human-alignment claim.
+
+The compact run record, exact code commit, environment, failure counts, full
+archive digest, and Kaggle notebook link are stored in
+[`reports/kaggle_vlm_batch_v0_1.json`](../reports/kaggle_vlm_batch_v0_1.json).

@@ -1,0 +1,38 @@
+{
+  "archive_sha256": "8ef9c1ad175232aabe58d2d9dfb864b750977a3e77ce0bfea4bbaa23e507720b",
+  "batch_elapsed_seconds": 208.419196,
+  "batch_id": "vlm-batch-439b66339fb8",
+  "cases_attempted": 12,
+  "cases_failed": 4,
+  "cases_scheduled": 12,
+  "cases_succeeded": 8,
+  "claim_scope": "development_execution_reliability_only",
+  "code_commit": "87c7b47",
+  "execution_environment": {
+    "accelerator": "Kaggle GPU P100",
+    "cuda_compute_capability": "6.0",
+    "pytorch": "2.7.1+cu126"
+  },
+  "execution_success_rate": 0.6666666666666666,
+  "failure_counts": {
+    "empty_response": 0,
+    "inference_failure": 0,
+    "json_parse_failure": 4,
+    "model_load_failure": 0,
+    "preparation_failure": 0,
+    "request_binding_failure": 0,
+    "schema_validation_failure": 0
+  },
+  "inference_performed": true,
+  "model_id": "Qwen/Qwen2-VL-2B-Instruct",
+  "notebook_url": "https://www.kaggle.com/code/triashasarkar/aerosynth-eval-kaggle-p100-development-batch/edit",
+  "performance_claim_supported": false,
+  "queue_id": "v0_1_development_calibration",
+  "rejected_outputs_retained": 4,
+  "request_bound_output_enabled": true,
+  "retry_attempts": 0,
+  "session_reused": true,
+  "session_setup_seconds": 20.289668,
+  "split": "development",
+  "total_attempts": 12
+}
