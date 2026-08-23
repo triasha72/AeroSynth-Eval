@@ -134,7 +134,10 @@ the same request-bound 12-case development queue. The checked-in
 [Kaggle notebook](notebooks/kaggle_vlm_batch.ipynb) records model, prompt,
 image, response, failure, and timing provenance, then packages the ignored run
 artifacts with a SHA-256 digest. See the [Kaggle runbook](docs/KAGGLE_VLM_BATCH.md).
-Real model output is still not human-alignment or protected-test evidence.
+The first measured P100 run attempted all 12 cases: eight responses passed the
+strict schema and four JSON failures were retained in the frozen report. This
+is execution-reliability evidence only; it is not human-alignment,
+protected-test, or evaluator-performance evidence.
 
 ## Evaluation and scaling layers
 
