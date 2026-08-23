@@ -15,6 +15,27 @@ from aerosynth_eval.mlx_vlm_runner import (
 )
 
 DEFAULT_TRANSFORMERS_VLM_MODEL = "Qwen/Qwen2-VL-2B-Instruct"
+TRANSFORMERS_JSON_SYSTEM_PROMPT = (
+    "You are a strict JSON API. Return the complete object requested by the user. "
+    "Never return a shortened score map, prose, Markdown, or fields not present in the "
+    "requested output shape. Include every required identity, decision, confidence, score, "
+    "rationale, and summary field."
+)
+
+
+def _transformers_messages(prompt: str, image_path: Path) -> list[dict[str, Any]]:
+    """Keep the structured-output instruction in the model's system role."""
+
+    return [
+        {"role": "system", "content": TRANSFORMERS_JSON_SYSTEM_PROMPT},
+        {
+            "role": "user",
+            "content": [
+                {"type": "image", "image": str(image_path)},
+                {"type": "text", "text": prompt},
+            ],
+        },
+    ]
 
 
 def create_transformers_vlm_session(
@@ -68,15 +89,7 @@ def create_transformers_vlm_session(
     ) -> str:
         if runtime_config != config:
             raise ValueError("Shared Transformers session configuration changed during a batch.")
-        messages = [
-            {
-                "role": "user",
-                "content": [
-                    {"type": "image", "image": str(image_path)},
-                    {"type": "text", "text": prompt},
-                ],
-            }
-        ]
+        messages = _transformers_messages(prompt, image_path)
         try:
             rendered = processor.apply_chat_template(
                 messages,
