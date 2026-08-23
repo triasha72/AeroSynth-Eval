@@ -103,6 +103,7 @@ class MlxVlmSmokePlan(BaseModel):
 MlxVlmRunBackend = Literal[
     "local_mlx_vlm",
     "shared_local_mlx_vlm",
+    "shared_transformers_vlm",
     "injected_test_double",
 ]
 
@@ -120,7 +121,7 @@ class MlxVlmSmokeRunRecord(BaseModel):
     performance_claim_supported: Literal[False] = False
     inference_performed: Literal[True] = True
     executed_at: datetime
-    runner: Literal["mlx-vlm"] = "mlx-vlm"
+    runner: Literal["mlx-vlm", "transformers"] = "mlx-vlm"
     runner_version: str = Field(min_length=1, max_length=100)
     config: MlxVlmRunConfig
     request: AutograderRequest
@@ -443,6 +444,20 @@ def _installed_mlx_vlm_version() -> str:
         return "unknown"
 
 
+def _runner_identity(
+    run_backend: MlxVlmRunBackend,
+) -> tuple[Literal["mlx-vlm", "transformers"], str]:
+    if run_backend == "shared_transformers_vlm":
+        try:
+            return "transformers", metadata.version("transformers")
+        except metadata.PackageNotFoundError:
+            return "transformers", "unknown"
+    return (
+        "mlx-vlm",
+        "test-double" if run_backend == "injected_test_double" else _installed_mlx_vlm_version(),
+    )
+
+
 def run_mlx_vlm_smoke(
     asset_id: str,
     config: MlxVlmRunConfig,
@@ -497,13 +512,13 @@ def run_mlx_vlm_smoke(
 
     response = _parse_vlm_output(raw_model_output, prepared.plan.request)
 
+    runner, runner_version = _runner_identity(run_backend)
     return MlxVlmSmokeRunRecord(
         run_id=f"mlx-vlm-{uuid.uuid4().hex[:12]}",
         run_backend=run_backend,
         executed_at=_normalized_execution_time(executed_at),
-        runner_version=(
-            "test-double" if run_backend == "injected_test_double" else _installed_mlx_vlm_version()
-        ),
+        runner=runner,
+        runner_version=runner_version,
         config=config,
         request=prepared.plan.request,
         image_sha256=prepared.plan.image_sha256,

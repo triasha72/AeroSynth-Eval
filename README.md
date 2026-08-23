@@ -50,7 +50,7 @@ test assets—not operational inspection imagery or physical simulations.
 | Layer | Implemented boundary |
 |---|---|
 | Benchmark integrity | 48 frozen scenarios, 48 checksummed assets, and a 36/12 development/protected-test split |
-| Model execution | Single-asset MLX-VLM smoke runs plus validated, resumable batch execution |
+| Model execution | Shared-session MLX-VLM and free Kaggle/P100 Transformers development batches |
 | Human workflow | Rater templates, ingestion, agreement analysis, manual adjudication, and human-alignment contracts |
 | Judge evaluation | GenAI-Bench/RichHF adapters, pairwise and multi-judge comparison, preference metrics, and calibration |
 | Adaptation | Leakage-controlled preference-data preparation and MLX-VLM LoRA/QLoRA training interfaces |
@@ -127,6 +127,15 @@ single response remains an individual research artifact, not an evaluator-qualit
 result. Read [the local-runner note](docs/MLX_VLM_DEVELOPMENT_RUNNER.md) before
 installing MLX-VLM or running the command.
 
+## Free Kaggle VLM batch
+
+The Linux/CUDA backend loads Qwen2-VL once in 4-bit mode and reuses it across
+the same request-bound 12-case development queue. The checked-in
+[Kaggle notebook](notebooks/kaggle_vlm_batch.ipynb) records model, prompt,
+image, response, failure, and timing provenance, then packages the ignored run
+artifacts with a SHA-256 digest. See the [Kaggle runbook](docs/KAGGLE_VLM_BATCH.md).
+Real model output is still not human-alignment or protected-test evidence.
+
 ## Evaluation and scaling layers
 
 The later evaluation layers are organized around explicit boundaries:
@@ -186,6 +195,8 @@ aerosynth-eval validate-autograder-response \
 aerosynth-eval run-mlx-vlm-smoke \
   asset-fuselage-corrosion-close-diffuse \
   --dry-run
+
+aerosynth-eval run-vlm-batch --backend transformers --dry-run
 ```
 
 GitHub Actions runs formatting, linting, strict type checking, tests, and the
