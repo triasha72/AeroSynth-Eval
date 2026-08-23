@@ -138,7 +138,42 @@ def render_runtime_autograder_prompt(request: AutograderRequest) -> str:
         "that satisfies output_schema. The asset_id, scenario_id, rubric_version, and "
         "result_source fields are fixed by output_schema and must be copied exactly."
     )
-    return json.dumps(payload, indent=2, sort_keys=True)
+    payload["output_rules"] = [
+        "Start the response with { and end it with }.",
+        "Do not add Markdown, headings, explanations, or text outside the JSON object.",
+        "Return exactly four scores in this order: context_fidelity, condition_fidelity, "
+        "image_quality, inspection_utility.",
+        "Each scores item must contain only dimension, score, and rationale. Rubric fields "
+        "such as score_0 and score_4 describe the input scale and must not be copied.",
+        "Use the attached image as evidence; do not merely repeat the example wording.",
+    ]
+    payload["output_shape_example"] = {
+        "asset_id": request.asset_id,
+        "scenario_id": request.scenario_id,
+        "rubric_version": request.rubric_version,
+        "result_source": "vlm_output",
+        "decision": "uncertain",
+        "confidence": 0.5,
+        "scores": [
+            {
+                "dimension": dimension,
+                "score": 2,
+                "rationale": "Replace this with concise image-grounded evidence.",
+            }
+            for dimension in (
+                "context_fidelity",
+                "condition_fidelity",
+                "image_quality",
+                "inspection_utility",
+            )
+        ],
+        "summary": "Replace this with a concise image-grounded conclusion.",
+    }
+    instructions = (
+        "IMPORTANT OUTPUT CONTRACT: reply with JSON only. No prose or Markdown. "
+        "Do not copy score_0 or score_4 into any score item.\n\n"
+    )
+    return instructions + json.dumps(payload, indent=2, sort_keys=True)
 
 
 def load_autograder_response(path: Path) -> AutograderResponse:

@@ -6,6 +6,7 @@ from aerosynth_eval.autograder import (
     build_autograder_request,
     load_autograder_response,
     render_autograder_prompt,
+    render_runtime_autograder_prompt,
     summarize_validated_autograder_response,
     validate_autograder_response,
 )
@@ -45,6 +46,21 @@ def test_render_autograder_prompt_contains_request_and_output_schema() -> None:
     assert DEVELOPMENT_ASSET_ID in prompt
     assert '"output_schema"' in prompt
     assert "performs no model inference" in prompt
+
+
+def test_runtime_prompt_makes_the_minimal_json_shape_explicit() -> None:
+    request = build_autograder_request(
+        "asset-fuselage-clean-oblique-directional",
+        REGISTRY_PATH,
+        MATRIX_PATH,
+    )
+
+    prompt = render_runtime_autograder_prompt(request)
+
+    assert prompt.startswith("IMPORTANT OUTPUT CONTRACT")
+    assert '"output_shape_example"' in prompt
+    assert "Each scores item must contain only dimension, score, and rationale" in prompt
+    assert "Do not copy score_0 or score_4" in prompt
 
 
 def test_valid_synthetic_response_is_schema_validated_only() -> None:

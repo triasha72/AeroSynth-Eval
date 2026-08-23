@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import uuid
 from datetime import UTC, datetime
@@ -38,6 +39,7 @@ from aerosynth_eval.mlx_vlm_runner import (
 from aerosynth_eval.scenario_matrix import load_scenario_matrix
 
 DEFAULT_BATCH_MAX_RETRIES = 1
+MAX_PERSISTED_ERROR_LENGTH = 2_000
 
 
 class VlmBatchFailureKind(StrEnum):
@@ -280,6 +282,17 @@ def _should_retry(
     )
 
 
+def _bounded_error_message(error: str) -> str:
+    """Keep failure evidence schema-safe while retaining a traceable digest."""
+
+    if len(error) <= MAX_PERSISTED_ERROR_LENGTH:
+        return error
+
+    digest = hashlib.sha256(error.encode("utf-8")).hexdigest()
+    suffix = f"\n...[truncated; sha256={digest}]"
+    return error[: MAX_PERSISTED_ERROR_LENGTH - len(suffix)] + suffix
+
+
 def create_development_vlm_batch_plan(
     queue_path: Path,
     config: MlxVlmRunConfig,
@@ -331,7 +344,7 @@ def _model_load_failure_record(
             attempt_count=0,
             elapsed_seconds=0.0,
             failure_kind=VlmBatchFailureKind.MODEL_LOAD_FAILURE,
-            error=error,
+            error=_bounded_error_message(error),
         )
         for queue_record in queue
     )
@@ -458,7 +471,7 @@ def run_development_vlm_batch(
                         attempt_count=attempt_count,
                         elapsed_seconds=_elapsed_seconds(case_started_at),
                         failure_kind=failure_kind,
-                        error=str(error),
+                        error=_bounded_error_message(str(error)),
                         rejected_output=error.rejected_output,
                     )
                 )
@@ -472,7 +485,7 @@ def run_development_vlm_batch(
                         attempt_count=attempt_count,
                         elapsed_seconds=_elapsed_seconds(case_started_at),
                         failure_kind=VlmBatchFailureKind.PREPARATION_FAILURE,
-                        error=str(error),
+                        error=_bounded_error_message(str(error)),
                     )
                 )
                 break

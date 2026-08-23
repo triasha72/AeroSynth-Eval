@@ -1,4 +1,5 @@
 import json
+import re
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -173,6 +174,32 @@ def test_batch_continues_after_one_invalid_model_response() -> None:
     assert failures[0].run_record is None
     assert failures[0].error is not None
     assert "exactly one JSON object" in failures[0].error
+
+
+def test_batch_bounds_oversized_failure_evidence() -> None:
+    oversized_error = "session-load-failure-" + ("x" * 10_000)
+
+    def oversized_failure(_: MlxVlmRunConfig) -> None:
+        raise ValueError(oversized_error)
+
+    record = run_development_vlm_batch(
+        QUEUE_PATH,
+        _config(),
+        REGISTRY_PATH,
+        MATRIX_PATH,
+        ASSET_ROOT,
+        session_factory=oversized_failure,
+        executed_at=FIXED_TIME,
+    )
+
+    assert all(case.status == "failed" for case in record.cases)
+    assert all(case.error is not None for case in record.cases)
+    assert all(len(case.error) == 2_000 for case in record.cases if case.error)
+    assert all(
+        re.search(r"\.\.\.\[truncated; sha256=[a-f0-9]{64}\]$", case.error)
+        for case in record.cases
+        if case.error
+    )
 
 
 def test_batch_plan_rejects_protected_test_split(tmp_path: Path) -> None:
