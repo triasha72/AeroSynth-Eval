@@ -13,4 +13,8 @@ Add executor-neutral distributed sharding and deterministic reduction so evaluat
 
 ## Gate
 
-No special external gate beyond passing unit/static checks and the smoke test described in README_APPLY.
+The deterministic planner and strict reducer are implemented and tested. A
+free Kaggle shared-session backend is also available for a real 12-case
+development batch. A distributed-performance claim still requires executing
+every planned shard, preserving its manifests, and successfully reducing the
+complete expected ID set.

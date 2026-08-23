@@ -36,6 +36,7 @@ from aerosynth_eval.mlx_vlm_runner import (
     DEFAULT_MAX_TOKENS,
     DEFAULT_MLX_VLM_MODEL,
     DEFAULT_TEMPERATURE,
+    MlxVlmRunBackend,
     MlxVlmRunConfig,
     create_mlx_vlm_smoke_plan,
     run_mlx_vlm_smoke,
@@ -45,6 +46,10 @@ from aerosynth_eval.mlx_vlm_runner import (
 from aerosynth_eval.procedural_corpus import materialize_procedural_corpus
 from aerosynth_eval.rubric import inspection_rubric
 from aerosynth_eval.scenario_matrix import load_scenario_matrix, validate_scenario_matrix
+from aerosynth_eval.transformers_vlm_runner import (
+    DEFAULT_TRANSFORMERS_VLM_MODEL,
+    create_transformers_vlm_session,
+)
 from aerosynth_eval.vlm_batch_runner import (
     DEFAULT_BATCH_MAX_RETRIES,
     VlmBatchRetryPolicy,
@@ -306,6 +311,10 @@ def run_vlm_batch_command(
         str,
         typer.Option("--model", help="MLX or Hugging Face model identifier to load locally."),
     ] = DEFAULT_MLX_VLM_MODEL,
+    backend: Annotated[
+        str,
+        typer.Option("--backend", help="Shared VLM runtime: mlx or transformers."),
+    ] = "mlx",
     max_tokens: Annotated[
         int,
         typer.Option("--max-tokens", help="Maximum output tokens for each development case."),
@@ -376,6 +385,10 @@ def run_vlm_batch_command(
     """Run or inspect the fixed development-only VLM evaluation batch."""
 
     try:
+        if backend not in {"mlx", "transformers"}:
+            raise ValueError("backend must be 'mlx' or 'transformers'.")
+        if backend == "transformers" and model == DEFAULT_MLX_VLM_MODEL:
+            model = DEFAULT_TRANSFORMERS_VLM_MODEL
         config = MlxVlmRunConfig(
             model_id=model,
             max_tokens=max_tokens,
@@ -395,12 +408,19 @@ def run_vlm_batch_command(
             _emit({"batch_plan": plan.model_dump(mode="json")})
             return
 
+        session_factory = None
+        session_backend: MlxVlmRunBackend = "shared_local_mlx_vlm"
+        if backend == "transformers":
+            session_factory = create_transformers_vlm_session
+            session_backend = "shared_transformers_vlm"
         record = run_development_vlm_batch(
             queue,
             config,
             registry,
             scenario_matrix,
             asset_root,
+            session_factory=session_factory,
+            session_backend=session_backend,
             retry_policy=retry_policy,
         )
         output_path = write_development_vlm_batch_record(

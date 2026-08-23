@@ -124,6 +124,39 @@ def test_shared_session_factory_is_created_once_for_twelve_cases() -> None:
     )
 
 
+def test_transformers_shared_backend_has_truthful_provenance() -> None:
+    def fake_session_factory(_: MlxVlmRunConfig) -> MlxVlmRequestBoundInference:
+        def inference(
+            __: MlxVlmRunConfig,
+            ___: str,
+            image_path: Path,
+            ____: AutograderRequest,
+        ) -> str:
+            return _valid_vlm_output(image_path)
+
+        return inference
+
+    record = run_development_vlm_batch(
+        QUEUE_PATH,
+        _config(),
+        REGISTRY_PATH,
+        MATRIX_PATH,
+        ASSET_ROOT,
+        session_factory=fake_session_factory,
+        session_backend="shared_transformers_vlm",
+        retry_policy=VlmBatchRetryPolicy(max_retries=0),
+        executed_at=FIXED_TIME,
+    )
+
+    assert all(case.run_record is not None for case in record.cases)
+    assert all(
+        case.run_record is not None
+        and case.run_record.run_backend == "shared_transformers_vlm"
+        and case.run_record.runner == "transformers"
+        for case in record.cases
+    )
+
+
 def test_transient_inference_failure_is_retried_once() -> None:
     target = "wing-crack-close-diffuse"
     calls: dict[str, int] = {}

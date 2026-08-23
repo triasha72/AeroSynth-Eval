@@ -359,6 +359,7 @@ def run_development_vlm_batch(
     *,
     inference: MlxVlmInference | None = None,
     session_factory: MlxVlmSessionFactory | None = None,
+    session_backend: MlxVlmRunBackend = "shared_local_mlx_vlm",
     retry_policy: VlmBatchRetryPolicy | None = None,
     executed_at: datetime | None = None,
 ) -> DevelopmentVlmBatchRunRecord:
@@ -366,6 +367,8 @@ def run_development_vlm_batch(
 
     if inference is not None and session_factory is not None:
         raise ValueError("Provide either inference or session_factory, not both.")
+    if session_backend not in {"shared_local_mlx_vlm", "shared_transformers_vlm"}:
+        raise ValueError("A shared batch session requires a real shared-session backend.")
 
     batch_started_at = perf_counter()
     queue = _load_validated_development_queue(
@@ -415,7 +418,7 @@ def run_development_vlm_batch(
 
         session_setup_seconds = _elapsed_seconds(session_started_at)
         session_reused = True
-        inference_backend = "shared_local_mlx_vlm"
+        inference_backend = session_backend
 
     cases: list[VlmBatchCaseRecord] = []
 

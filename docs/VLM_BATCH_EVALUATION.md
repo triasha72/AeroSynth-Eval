@@ -129,15 +129,17 @@ The batch summary reports:
 
 These quantities measure execution reliability only.
 
-## Deferred capabilities
+## Scaling and backend status
 
-The v0.11 runner remains sequential. The following are intentionally deferred:
+The batch remains sequential inside one process so a single GPU session is not
+duplicated. A Linux/CUDA Transformers backend now provides a free Kaggle P100
+execution path, while lower-level deterministic shard, cache, checkpoint, and
+strict-reduction primitives support larger executor-owned experiments.
 
-- parallel workers;
-- response caching;
-- resume/checkpoint support;
-- distributed execution; and
-- evaluator-quality comparison against human reference labels.
+These primitives are intentionally not described as a completed distributed
+model run until shard outputs have actually been executed and reduced. The
+remaining evidence gap is evaluator-quality comparison against genuine human
+reference labels.
 
 ## Validation
 
