@@ -15,6 +15,11 @@ schema, and writes a provenance record outside Git.
 5. Inspect failures and rejected-output hashes. Do not silently repair invalid
    responses or treat execution success as evaluator accuracy.
 
+The notebook installs the PyTorch 2.7.1 CUDA 12.6 wheel before the project
+dependencies. Kaggle's newer default wheel omits Pascal `sm_60` kernels and
+otherwise fails during model loading on a Tesla P100 with `no kernel image is
+available for execution on the device`.
+
 The run closes the Linux/CUDA execution gap and provides real model outputs. It
 does not establish human alignment. Accuracy claims still require two genuine
 independent raters, adjudication, and comparison against the frozen reference.
