@@ -40,20 +40,20 @@ preference-supervised adaptation contracts, experiment selection, and
 deterministic distributed execution.
 
 These layers were separated so software fixtures cannot be mistaken for human
-or model evidence. The repository contains no genuine completed human-rating
-set, adjudicated gold reference, aggregate protected-test VLM result, or
-demonstrated fine-tuning improvement. The bundled images are simple synthetic
+or model evidence. The repository now contains a frozen AGDD selection/test
+manifest and a one-time protected-test base-versus-QLoRA result. It still has no
+genuine completed two-rater set or adjudicated human gold reference. The bundled images are simple synthetic
 test assets—not operational inspection imagery or physical simulations.
 
 ### Capability map
 
 | Layer | Implemented boundary |
 |---|---|
-| Benchmark integrity | 48 frozen scenarios, 48 checksummed assets, and a 36/12 development/protected-test split |
+| Benchmark integrity | 48 frozen AeroSynth scenarios plus a checksummed AGDD 11-selection/11-protected-test manifest |
 | Model execution | Shared-session MLX-VLM and free Kaggle/P100 Transformers development batches |
 | Human workflow | Rater templates, ingestion, agreement analysis, manual adjudication, and human-alignment contracts |
 | Judge evaluation | GenAI-Bench/RichHF adapters, pairwise and multi-judge comparison, preference metrics, and calibration |
-| Adaptation | Leakage-controlled preference-data preparation and MLX-VLM LoRA/QLoRA training interfaces |
+| Adaptation | Real Qwen2.5-VL-3B completion-only QLoRA; protected exact match improved from 1/11 to 3/11 |
 | Experiment systems | Registry-based comparison, explicit selection policy, deterministic sharding, caching, and reduction |
 
 The [project notes](docs/) state the data, compute, and human-review gates for

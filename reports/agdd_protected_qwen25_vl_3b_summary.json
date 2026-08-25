@@ -1,0 +1,37 @@
+{
+  "date": "2026-08-25",
+  "model_id": "Qwen/Qwen2.5-VL-3B-Instruct",
+  "hardware": "Google Colab Tesla T4 15360 MiB",
+  "split_manifest": "data/splits/agdd_val_selection_test_v1.json",
+  "split_manifest_sha256": "bc530a6b7b99142dc6bb71aa44b3fbad56c175afe537303c5a919992d1cb6b04",
+  "selection_count": 11,
+  "protected_test_count": 11,
+  "checkpoint_selection": {"checkpoint": 40, "selection_loss": 0.4421914219856262},
+  "bootstrap": {"method": "percentile over cases", "samples": 10000, "seed": 17, "confidence_level": 0.95},
+  "base": {
+    "exact_match_accuracy": 0.09090909090909091,
+    "exact_match_ci95": [0.0, 0.2727272727272727],
+    "macro_f1": 0.17692307692307693,
+    "micro_f1": 0.2285714285714286,
+    "mean_latency_ms": 706.675048999986,
+    "mean_latency_ci95_ms": [541.6338892726923, 989.3664000000048],
+    "ece": 0.6376505060629412,
+    "brier": 0.4986962710122288,
+    "nll": 1.2606531965433343,
+    "raw_report_sha256": "ec7431e2601642e087687506ee13d4ea987021bd5d01c26c00a71360a4b3d1f9"
+  },
+  "tuned": {
+    "exact_match_accuracy": 0.2727272727272727,
+    "exact_match_ci95": [0.0, 0.5454545454545454],
+    "macro_f1": 0.49377828054298645,
+    "micro_f1": 0.6363636363636364,
+    "mean_latency_ms": 924.3394663636453,
+    "mean_latency_ci95_ms": [742.0533060000129, 1219.3600771818183],
+    "ece": 0.45858578790317883,
+    "brier": 0.34365930378891785,
+    "nll": 0.889042323779414,
+    "raw_report_sha256": "5cad919bea6c0e395709e012f053392c9ae13988dee64426238fc3dc25162a9e"
+  },
+  "claim_scope": "One-time pilot protected-test comparison. Test examples were not used for checkpoint selection. Confidence intervals overlap; do not claim statistical superiority.",
+  "remaining_regression": "Tuned crack recall is 0.0 versus base recall 1.0; tuned mean latency is higher."
+}

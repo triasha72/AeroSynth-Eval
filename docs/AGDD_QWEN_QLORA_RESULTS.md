@@ -90,3 +90,26 @@ The targeted adapter reached crack precision 0.214 and recall 1.0, but it predic
 examples and reduced exact-set correctness. This demonstrates a real tradeoff rather than a universal
 improvement. The untargeted completion-only adapter remains the flagship checkpoint; future work
 should tune a class-specific threshold or use a softer weighted loss rather than 7x duplication.
+
+## Frozen protected-split rerun
+
+The earlier 22-example figures above are validation diagnostics because the same official AGDD
+validation set selected the checkpoint. To remove that leakage, the official validation IDs were
+frozen before retraining into 11 selection examples and 11 protected-test examples. The exact
+manifest is `data/splits/agdd_val_selection_test_v1.json` (SHA-256
+`bc530a6b7b99142dc6bb71aa44b3fbad56c175afe537303c5a919992d1cb6b04`). Checkpoint 40 was selected
+only from selection loss (best loss 0.4422). Each model was then evaluated on the protected subset
+once on a Colab Tesla T4.
+
+| Model | Exact match (95% bootstrap CI) | Macro-F1 | Micro-F1 | ECE | Brier | Mean latency (95% CI) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Base | 9.09% (0–27.27%) | 0.177 | 0.229 | 0.638 | 0.499 | 707 ms (542–989) |
+| Completion-only QLoRA | **27.27% (0–54.55%)** | **0.494** | **0.636** | **0.459** | **0.344** | 924 ms (742–1,219) |
+
+The tuned checkpoint improves exact set match by 18.18 percentage points and improves both aggregate
+F1 and calibration, but costs 218 ms mean latency. The sample is deliberately small, so the exact
+match confidence intervals overlap and this is a promising pilot rather than a definitive superiority
+claim. Crack remains the clearest regression: base crack recall was 1.0 (low precision), while tuned
+crack recall was 0.0. Tuned contusion recall reached 1.0, scratches recall 0.5, and spot recall 0.625.
+The compact evidence record is `reports/agdd_protected_qwen25_vl_3b_summary.json`; it includes raw
+report hashes and the bootstrap configuration.
