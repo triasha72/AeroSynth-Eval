@@ -74,7 +74,7 @@ def main() -> None:
     config = SFTConfig(
         output_dir=str(args.output), max_steps=args.max_steps,
         per_device_train_batch_size=1, per_device_eval_batch_size=1,
-        gradient_accumulation_steps=4, gradient_checkpointing=True,
+        gradient_accumulation_steps=1, gradient_checkpointing=True,
         gradient_checkpointing_kwargs={"use_reentrant": False}, learning_rate=2e-4,
         max_length=None, fp16=False, logging_steps=1, eval_strategy="steps", eval_steps=10,
         save_strategy="steps", save_steps=10, save_total_limit=2, load_best_model_at_end=True,

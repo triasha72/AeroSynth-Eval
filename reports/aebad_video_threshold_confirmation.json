@@ -1,0 +1,18 @@
+{
+  "date": "2026-08-25",
+  "method": "video1-only per-frame-count balanced-accuracy threshold calibration",
+  "threshold_artifact_sha256": "05f67bde5b93654b2cc46f975347ee9b508c7a5bbb9543545fc6362e46fc5b82",
+  "confirmatory_manifest_sha256": "863adea711dcfe8c22efef84f326105193cdef38e72e9bb31486241b5bd77f05",
+  "confirmatory_report_sha256": "9ea419d99a1d2d292a6e2040a1a8501a85bb82119db62d2c6653772674bf7932",
+  "frame_disjoint_from_primary_test": true,
+  "video_identity_disjoint_from_primary_test": false,
+  "cases": 20,
+  "results": {
+    "1": {"balanced_accuracy": 0.5, "good_recall": 0.4, "anomaly_recall": 0.6, "latency_ms": 142.0968324000114},
+    "4": {"balanced_accuracy": 0.5, "good_recall": 0.4, "anomaly_recall": 0.6, "latency_ms": 224.30880325005091},
+    "8": {"balanced_accuracy": 0.5, "good_recall": 0.7, "anomaly_recall": 0.3, "latency_ms": 452.1727608499532},
+    "16": {"balanced_accuracy": 0.5, "good_recall": 0.0, "anomaly_recall": 1.0, "latency_ms": 937.8524342000674}
+  },
+  "viewpoint_balanced_accuracy": {"video2": 0.55, "video3": 0.45},
+  "decision": "reject threshold calibration; no balanced-accuracy improvement generalized"
+}

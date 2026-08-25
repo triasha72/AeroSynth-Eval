@@ -30,3 +30,18 @@ prohibited.
 
 Machine-readable evidence and raw-output hashes are stored in
 `reports/aebad_video_smolvlm2_summary.json`.
+
+## Frame-disjoint threshold confirmation
+
+Video-1 selection scores were perfectly separable for 1 and 4 frames, so per-frame-count thresholds
+were fit using selection labels only. A second 20-case confirmation set used windows whose frame
+paths do not overlap the primary test. It is secondary evidence because it still shares video2/video3
+identity. Thresholding recovered some anomaly recall but lost matching good recall: every frame count
+remained at 50% balanced accuracy. Video2 scored 55% and video3 45%. The calibration shortcut is
+therefore rejected; full results are in `reports/aebad_video_threshold_confirmation.json`.
+
+The implemented next route is four-frame completion-only SmolVLM2 QLoRA in
+`scripts/train_aebad_video_smolvlm2_qlora.py`. A Colab T4 run reached checkpoint 10 with selection
+loss 0.2031 (training loss fell from 0.6929 to 0.1341), but the free runtime was reclaimed before the
+adapter could be exported. This interrupted run is not reported as a tuned-model result. The script
+now uses one-step accumulation so a replacement free-GPU run completes substantially faster.
