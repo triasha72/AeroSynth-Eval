@@ -55,6 +55,7 @@ def main() -> None:
     parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument("--subset", choices=("selection", "test"), required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--thresholds", type=Path)
     args = parser.parse_args()
     if args.output.exists():
         raise SystemExit(f"Refusing to overwrite {args.output}")
@@ -63,6 +64,14 @@ def main() -> None:
     from transformers import AutoProcessor, SmolVLMForConditionalGeneration
 
     manifest = json.loads(args.manifest.read_text())
+    thresholds = (
+        {
+            count: details["threshold"]
+            for count, details in json.loads(args.thresholds.read_text())["thresholds"].items()
+        }
+        if args.thresholds
+        else {}
+    )
     cases = manifest[f"{args.subset}_cases"]
     processor = AutoProcessor.from_pretrained(
         MODEL_ID, do_image_splitting=False, size={"longest_edge": 384}
@@ -98,9 +107,10 @@ def main() -> None:
                 [logits[0, label_token_ids[label][0]] for label in ("good", "anomaly")]
             )
             probabilities = class_logits.float().softmax(dim=0)
-            predicted_index = int(probabilities.argmax())
-            prediction = ("good", "anomaly")[predicted_index]
-            confidence = float(probabilities[predicted_index])
+            anomaly_probability = float(probabilities[1])
+            threshold = float(thresholds.get(str(count), 0.5))
+            prediction = "anomaly" if anomaly_probability >= threshold else "good"
+            confidence = anomaly_probability if prediction == "anomaly" else 1 - anomaly_probability
             raw = prediction.upper()
             records.append({
                 "case_id": case["case_id"], "video": case["video"],
@@ -108,6 +118,8 @@ def main() -> None:
                 "prediction": prediction, "raw_output": raw,
                 "exact_match": prediction == case["label"],
                 "confidence": confidence, "latency_ms": latency,
+                "anomaly_probability": anomaly_probability,
+                "decision_threshold": threshold,
             })
             print(json.dumps({"case": case["case_id"], "frames": count, "raw": raw}), flush=True)
 
@@ -123,6 +135,7 @@ def main() -> None:
         "claim_scope": "native_aebad_video_temporal_ablation",
         "model_id": MODEL_ID, "subset": args.subset,
         "manifest": str(args.manifest), "prompt": PROMPT,
+        "thresholds": thresholds,
         "by_frame_count": by_count, "by_video": by_video, "records": records,
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
