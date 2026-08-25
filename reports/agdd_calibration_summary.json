@@ -1,0 +1,25 @@
+{
+  "base": {
+    "brier_score": 0.48649131137921553,
+    "exact_match_accuracy": 0.045454545454545456,
+    "expected_calibration_error": 0.6606946045702153,
+    "macro_f1": 0.2215909090909091,
+    "mean_confidence": 0.7061491500247609,
+    "negative_log_likelihood": 1.2233708163823303,
+    "report_sha256": "c53f58d1816f75ff4802bb8cfcf8d719ecd81dbd9e056625375bd4581ccca85d"
+  },
+  "claim_scope": "agdd_held_out_validation_sequence_confidence_calibration",
+  "confidence_definition": "geometric mean probability of generated tokens",
+  "correctness_definition": "exact multilabel set match",
+  "held_out_examples": 22,
+  "limitation": "The official validation split was also used for checkpoint selection; these are not protected-test estimates.",
+  "tuned": {
+    "brier_score": 0.377549388704106,
+    "exact_match_accuracy": 0.22727272727272727,
+    "expected_calibration_error": 0.43691152334213257,
+    "macro_f1": 0.49381232193732194,
+    "mean_confidence": 0.6641842506148599,
+    "negative_log_likelihood": 0.9741575452703956,
+    "report_sha256": "04960db8e7fd69fd1afff51a8da8b21c376741a273057a4b8f5ff0a69357300b"
+  }
+}
