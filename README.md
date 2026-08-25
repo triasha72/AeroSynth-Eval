@@ -54,6 +54,7 @@ test assets—not operational inspection imagery or physical simulations.
 | Human workflow | Rater templates, ingestion, agreement analysis, manual adjudication, and human-alignment contracts |
 | Judge evaluation | GenAI-Bench/RichHF adapters, pairwise and multi-judge comparison, preference metrics, and calibration |
 | Adaptation | Real Qwen2.5-VL-3B completion-only QLoRA; protected exact match improved from 1/11 to 3/11 |
+| Native video | AeBAD-V 1/4/8/16-frame protected ablation with viewpoint slices, calibration, and latency |
 | Experiment systems | Registry-based comparison, explicit selection policy, deterministic sharding, caching, and reduction |
 
 The [project notes](docs/) state the data, compute, and human-review gates for

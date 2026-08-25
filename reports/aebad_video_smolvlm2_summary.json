@@ -1,0 +1,24 @@
+{
+  "date": "2026-08-25",
+  "dataset": "AeBAD-V",
+  "dataset_source": "https://github.com/zhangzilongc/MMR",
+  "dataset_license": "CC BY 4.0",
+  "model_id": "HuggingFaceTB/SmolVLM2-2.2B-Instruct",
+  "hardware": "Google Colab Tesla T4 15360 MiB",
+  "manifest_sha256": "0ad38c0af49c4b235dfba3f4d0b7e29d6b97e510e00901f7b13af01d3a56f5a6",
+  "selection_policy": "video1: 8 selection windows; videos2-3: 16 protected-test windows",
+  "window_frames": 16,
+  "selection_report_sha256": "d76eb2a2918a4120ead8a9a61eee1d9c28b6565a14aa6f1d4b0340ccf5e7f8f7",
+  "protected_report_sha256": "21fbf4d514a7a4a6e152ccfe6cb8ddbc85e7ccf1ce76afadfb8fd8530aa63855",
+  "protected_results": {
+    "1": {"accuracy": 0.5, "balanced_accuracy": 0.5, "anomaly_recall": 0.0, "mean_latency_ms": 167.8398481250838, "ece": 0.4953279048204422, "brier": 0.49558014324398236},
+    "4": {"accuracy": 0.5, "balanced_accuracy": 0.5, "anomaly_recall": 0.0, "mean_latency_ms": 250.729146312608, "ece": 0.48929182067513466, "brier": 0.49029545073347847},
+    "8": {"accuracy": 0.5, "balanced_accuracy": 0.5, "anomaly_recall": 0.0, "mean_latency_ms": 536.4448950626297, "ece": 0.4898959510028362, "brier": 0.49017037751999504},
+    "16": {"accuracy": 0.5, "balanced_accuracy": 0.5, "anomaly_recall": 0.0, "mean_latency_ms": 1069.8236096251321, "ece": 0.47836916893720627, "brier": 0.4802393021707094}
+  },
+  "viewpoint_slices": {
+    "video2_balanced_accuracy": 0.5,
+    "video3_balanced_accuracy": 0.5
+  },
+  "conclusion": "No temporal quality gain. The zero-shot constrained classifier predicts GOOD for every protected window; additional frames only increase latency."
+}
