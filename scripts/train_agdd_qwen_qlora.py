@@ -55,7 +55,7 @@ def main() -> None:
     args = parser.parse_args()
 
     import torch
-    from peft import LoraConfig
+    from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
     from transformers import (
         AutoProcessor,
         BitsAndBytesConfig,
@@ -90,6 +90,11 @@ def main() -> None:
         target_modules=["q_proj", "v_proj"],
         task_type="CAUSAL_LM",
     )
+    model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=True)
+    model = get_peft_model(model, lora)
+    for parameter in model.parameters():
+        if parameter.requires_grad:
+            parameter.data = parameter.data.float()
     config = SFTConfig(
         output_dir=str(args.output),
         max_steps=args.max_steps,
@@ -114,7 +119,6 @@ def main() -> None:
         args=config,
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
-        peft_config=lora,
         processing_class=processor,
     )
     result = trainer.train()
