@@ -105,6 +105,8 @@ def main() -> None:
     parser.add_argument("--dataset", type=Path, required=True)
     parser.add_argument("--adapter", type=Path)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--split-manifest", type=Path)
+    parser.add_argument("--subset", choices=("selection", "test"))
     args = parser.parse_args()
     if args.output.exists():
         raise SystemExit(f"Refusing to overwrite {args.output}")
@@ -135,8 +137,16 @@ def main() -> None:
     )
 
     records = []
+    allowed_ids = None
+    if bool(args.split_manifest) != bool(args.subset):
+        raise SystemExit("--split-manifest and --subset must be provided together")
+    if args.split_manifest:
+        split_payload = json.loads(args.split_manifest.read_text())
+        allowed_ids = set(split_payload[f"{args.subset}_ids"])
     labels = args.dataset / "data" / "labels" / "val"
     for label_path in sorted(labels.glob("*.txt")):
+        if allowed_ids is not None and label_path.stem not in allowed_ids:
+            continue
         image_path = args.dataset / "data" / "image" / "val" / f"{label_path.stem}.png"
         messages = [
             {
@@ -200,6 +210,8 @@ def main() -> None:
         "claim_scope": "agdd_native_held_out_validation",
         "model_id": MODEL_ID,
         "adapter": str(args.adapter) if args.adapter else None,
+        "split_manifest": str(args.split_manifest) if args.split_manifest else None,
+        "subset": args.subset,
         "case_count": len(records),
         "exact_match_accuracy": sum(row["exact_match"] for row in records) / len(records),
         "parse_rate": sum(bool(row["prediction"]) for row in records) / len(records),

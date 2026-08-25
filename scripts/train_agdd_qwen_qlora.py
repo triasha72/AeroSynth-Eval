@@ -29,11 +29,14 @@ def build_dataset(  # type: ignore[no-untyped-def]
     split: str,
     rare_class_oversampling: bool = False,
     completion_only_loss: bool = False,
+    sample_ids: set[str] | None = None,
 ):
     from datasets import Dataset, Image, List
 
     records = []
     for label_path in sorted((root / "data" / "labels" / split).glob("*.txt")):
+        if sample_ids is not None and label_path.stem not in sample_ids:
+            continue
         image_path = root / "data" / "image" / split / f"{label_path.stem}.png"
         prompt = [
             {
@@ -69,6 +72,7 @@ def main() -> None:
     parser.add_argument("--eval-steps", type=int, default=10)
     parser.add_argument("--rare-class-oversampling", action="store_true")
     parser.add_argument("--completion-only-loss", action="store_true")
+    parser.add_argument("--selection-manifest", type=Path)
     args = parser.parse_args()
 
     import torch
@@ -86,8 +90,15 @@ def main() -> None:
         rare_class_oversampling=args.rare_class_oversampling,
         completion_only_loss=args.completion_only_loss,
     )
+    selection_ids = None
+    if args.selection_manifest:
+        selection_payload = json.loads(args.selection_manifest.read_text())
+        selection_ids = set(selection_payload["selection_ids"])
     eval_dataset = build_dataset(
-        args.dataset, "val", completion_only_loss=args.completion_only_loss
+        args.dataset,
+        "val",
+        completion_only_loss=args.completion_only_loss,
+        sample_ids=selection_ids,
     )
     quantization = BitsAndBytesConfig(
         load_in_4bit=True,
@@ -161,6 +172,7 @@ def main() -> None:
         "source_commit": "4b5daa92929934f30b1155033c3ce67b7701960f",
         "train_examples": len(train_dataset),
         "held_out_examples": len(eval_dataset),
+        "selection_manifest": str(args.selection_manifest) if args.selection_manifest else None,
         "max_steps": args.max_steps,
         "lora_rank": 8,
         "lora_alpha": 16,
