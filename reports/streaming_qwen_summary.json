@@ -1,0 +1,43 @@
+{
+  "claim_scope": "recorded_frame_streaming_replay",
+  "execution_environment": "Google Colab Tesla T4, 15360 MiB",
+  "model_id": "Qwen/Qwen2.5-VL-3B-Instruct",
+  "peak_cuda_allocated_mib": 7241.48388671875,
+  "peak_cuda_reserved_mib": 7318.0,
+  "queue_capacity": 2,
+  "queue_policy": "bounded drop-oldest",
+  "report_sha256": "478589e9d681916948f888a3648cd3d5ff15467637dfda6f5b1e62392925e299",
+  "sliding_window_size": 4,
+  "summaries": {
+    "injected_drop": {
+      "accuracy": 0.25,
+      "case_count": 12,
+      "dropped_inputs": 24,
+      "latency_p50_ms": 281.10522299994045,
+      "latency_p95_ms": 383.6300359998859,
+      "processed_windows": 24,
+      "recovered_cases": 12,
+      "throughput_windows_per_second": 3.1727145751244503
+    },
+    "normal": {
+      "accuracy": 0.16666666666666666,
+      "case_count": 12,
+      "dropped_inputs": 0,
+      "latency_p50_ms": 342.0273259998794,
+      "latency_p95_ms": 681.8233999983931,
+      "processed_windows": 48,
+      "recovered_cases": 0,
+      "throughput_windows_per_second": 2.5046278203913004
+    },
+    "overload": {
+      "accuracy": 0.25,
+      "case_count": 12,
+      "dropped_inputs": 24,
+      "latency_p50_ms": 272.662309500447,
+      "latency_p95_ms": 350.61160500117694,
+      "processed_windows": 24,
+      "recovered_cases": 12,
+      "throughput_windows_per_second": 3.4656107589511973
+    }
+  }
+}

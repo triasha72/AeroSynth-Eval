@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import time
 from collections import Counter
 from pathlib import Path
@@ -63,6 +64,42 @@ def classification_metrics(records: list[dict[str, object]]) -> dict[str, object
     return {"per_class": per_class, "macro_f1": macro_f1, "micro_f1": micro_f1}
 
 
+def calibration_metrics(
+    records: list[dict[str, object]], bins: int = 5
+) -> dict[str, object]:
+    """Summarize sequence-confidence calibration against exact-set correctness."""
+    points = [(float(row["confidence"]), bool(row["exact_match"])) for row in records]
+    epsilon = 1e-7
+    brier = sum((confidence - float(correct)) ** 2 for confidence, correct in points) / len(points)
+    negative_log_likelihood = -sum(
+        math.log(max(epsilon, min(1 - epsilon, confidence)))
+        if correct
+        else math.log(max(epsilon, min(1 - epsilon, 1 - confidence)))
+        for confidence, correct in points
+    ) / len(points)
+    buckets: list[list[tuple[float, bool]]] = [[] for _ in range(bins)]
+    for point in points:
+        buckets[min(bins - 1, int(point[0] * bins))].append(point)
+    expected_calibration_error = sum(
+        len(bucket)
+        / len(points)
+        * abs(
+            sum(confidence for confidence, _ in bucket) / len(bucket)
+            - sum(correct for _, correct in bucket) / len(bucket)
+        )
+        for bucket in buckets
+        if bucket
+    )
+    return {
+        "confidence_definition": "geometric mean probability of generated tokens",
+        "mean_confidence": sum(confidence for confidence, _ in points) / len(points),
+        "brier_score": brier,
+        "negative_log_likelihood": negative_log_likelihood,
+        "expected_calibration_error": expected_calibration_error,
+        "bins": bins,
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset", type=Path, required=True)
@@ -117,12 +154,31 @@ def main() -> None:
         ).to(model.device)
         started = time.perf_counter()
         with torch.inference_mode():
-            generated = model.generate(**inputs, max_new_tokens=20, do_sample=False)
+            generated = model.generate(
+                **inputs,
+                max_new_tokens=20,
+                do_sample=False,
+                return_dict_in_generate=True,
+                output_scores=True,
+            )
         latency_ms = (time.perf_counter() - started) * 1000
+        sequences = generated.sequences
         trimmed = [
             output[len(source) :]
-            for source, output in zip(inputs.input_ids, generated, strict=True)
+            for source, output in zip(inputs.input_ids, sequences, strict=True)
         ]
+        generated_tokens = sequences[:, inputs.input_ids.shape[1] :]
+        token_log_probabilities = []
+        for index, scores in enumerate(generated.scores):
+            token = generated_tokens[:, index]
+            token_log_probabilities.append(
+                scores.log_softmax(dim=-1).gather(1, token[:, None]).squeeze(1)
+            )
+        confidence = (
+            torch.stack(token_log_probabilities).mean().exp().item()
+            if token_log_probabilities
+            else 0.0
+        )
         raw = processor.batch_decode(trimmed, skip_special_tokens=True)[0]
         reference = reference_classes(label_path)
         prediction = predicted_classes(raw)
@@ -133,6 +189,7 @@ def main() -> None:
                 "prediction": prediction,
                 "raw_output": raw,
                 "exact_match": prediction == reference,
+                "confidence": confidence,
                 "latency_ms": latency_ms,
             }
         )
@@ -149,6 +206,7 @@ def main() -> None:
         "mean_latency_ms": sum(row["latency_ms"] for row in records) / len(records),
         "predicted_class_counts": dict(sorted(predicted_distribution.items())),
         "classification_metrics": classification_metrics(records),
+        "calibration_metrics": calibration_metrics(records),
         "records": records,
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
