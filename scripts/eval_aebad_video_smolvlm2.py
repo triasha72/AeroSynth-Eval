@@ -56,6 +56,7 @@ def main() -> None:
     parser.add_argument("--subset", choices=("selection", "test"), required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--thresholds", type=Path)
+    parser.add_argument("--adapter", type=Path)
     args = parser.parse_args()
     if args.output.exists():
         raise SystemExit(f"Refusing to overwrite {args.output}")
@@ -79,6 +80,10 @@ def main() -> None:
     model = SmolVLMForConditionalGeneration.from_pretrained(
         MODEL_ID, device_map="auto", dtype=torch.float16
     ).eval()
+    if args.adapter:
+        from peft import PeftModel
+
+        model = PeftModel.from_pretrained(model, args.adapter).eval()
     label_token_ids = {
         label: processor.tokenizer.encode(f" {label}", add_special_tokens=False)
         for label in ("good", "anomaly")
@@ -134,6 +139,7 @@ def main() -> None:
     payload = {
         "claim_scope": "native_aebad_video_temporal_ablation",
         "model_id": MODEL_ID, "subset": args.subset,
+        "adapter": str(args.adapter) if args.adapter else None,
         "manifest": str(args.manifest), "prompt": PROMPT,
         "thresholds": thresholds,
         "by_frame_count": by_count, "by_video": by_video, "records": records,
