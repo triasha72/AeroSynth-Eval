@@ -74,7 +74,7 @@ def main() -> None:
     model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
         MODEL_ID,
         device_map="auto",
-        torch_dtype=torch.float16,
+        dtype=torch.float16,
         quantization_config=quantization,
     )
     processor = AutoProcessor.from_pretrained(
