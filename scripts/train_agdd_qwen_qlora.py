@@ -61,7 +61,6 @@ def main() -> None:
     parser.add_argument("--max-steps", type=int, default=20)
     parser.add_argument("--eval-steps", type=int, default=10)
     parser.add_argument("--rare-class-oversampling", action="store_true")
-    parser.add_argument("--assistant-only-loss", action="store_true")
     args = parser.parse_args()
 
     import torch
@@ -127,7 +126,6 @@ def main() -> None:
         load_best_model_at_end=True,
         metric_for_best_model="eval_loss",
         greater_is_better=False,
-        assistant_only_loss=args.assistant_only_loss,
         report_to="none",
         seed=17,
         dataset_kwargs={"skip_prepare_dataset": True},
@@ -153,7 +151,7 @@ def main() -> None:
         "lora_rank": 8,
         "lora_alpha": 16,
         "rare_class_oversampling": args.rare_class_oversampling,
-        "assistant_only_loss": args.assistant_only_loss,
+        "loss_scope": "full_sequence (TRL does not support assistant_only_loss for VLMs)",
         "best_checkpoint": trainer.state.best_model_checkpoint,
         "best_metric": trainer.state.best_metric,
         "metrics": result.metrics,
