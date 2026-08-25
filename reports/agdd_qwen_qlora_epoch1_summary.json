@@ -1,0 +1,47 @@
+{
+  "adapter": {
+    "archive_name": "agdd-qwen-qlora-epoch1.tar.gz",
+    "archive_sha256": "fd3e75541c9b9aaae53011ac8b4a2ca5af649e937c1de76f7d947015797d0435",
+    "archive_size": "6.6 MiB",
+    "lora_alpha": 16,
+    "lora_rank": 8
+  },
+  "base_validation": {
+    "case_count": 22,
+    "exact_match_accuracy": 0.045454545454545456,
+    "mean_latency_ms": 563.0561580000259,
+    "parse_rate": 1.0,
+    "report_sha256": "0b4fff650f68d4aa5ab388901f52b16810ddb55aca58989dd0775b457d4b34a8"
+  },
+  "claim_scope": "agdd_native_held_out_qlora_comparison",
+  "dataset": {
+    "held_out_examples": 22,
+    "name": "AGDD",
+    "source_commit": "4b5daa92929934f30b1155033c3ce67b7701960f",
+    "train_examples": 197
+  },
+  "execution_environment": "Google Colab Tesla T4, 15360 MiB",
+  "model_id": "Qwen/Qwen2.5-VL-3B-Instruct",
+  "promoted": false,
+  "rejection_reason": "Held-out exact match regressed from 4.55% to 0%; the adapter overpredicted nearly every class.",
+  "training": {
+    "max_steps": 49,
+    "runtime_seconds": 750.0337,
+    "steps_per_second": 0.065,
+    "train_loss": 11.834575244358607,
+    "training_evidence_sha256": "df0b1f41586984f6b0bd99e33f93d6d7a9bcb58477fbb101e6f03571cfa370d7"
+  },
+  "tuned_validation": {
+    "case_count": 22,
+    "exact_match_accuracy": 0.0,
+    "mean_latency_ms": 1309.322719772767,
+    "parse_rate": 1.0,
+    "predicted_class_counts": {
+      "contusion": 21,
+      "crack": 20,
+      "scratches": 20,
+      "spot": 22
+    },
+    "report_sha256": "15d551b321e9a5a4d01305784b53a0a4000ab022c33d1e74b74770736c9e3110"
+  }
+}
