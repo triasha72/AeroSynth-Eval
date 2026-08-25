@@ -12,8 +12,8 @@ from eval_agdd_qwen_adapter import calibration_metrics
 
 MODEL_ID = "HuggingFaceTB/SmolVLM2-2.2B-Instruct"
 PROMPT = (
-    "Inspect this ordered sequence of aero-engine blade frames. Is the blade sequence anomalous? "
-    "Answer with exactly one word: anomaly or good."
+    "Binary inspection task. Inspect these ordered aero-engine blade frames. Do not describe the "
+    "images. Output exactly GOOD if the blade is normal, otherwise output exactly ANOMALY."
 )
 
 
@@ -64,13 +64,16 @@ def main() -> None:
 
     manifest = json.loads(args.manifest.read_text())
     cases = manifest[f"{args.subset}_cases"]
-    processor = AutoProcessor.from_pretrained(MODEL_ID)
+    processor = AutoProcessor.from_pretrained(
+        MODEL_ID, do_image_splitting=False, size={"longest_edge": 384}
+    )
     model = SmolVLMForConditionalGeneration.from_pretrained(
         MODEL_ID, device_map="auto", dtype=torch.float16
     ).eval()
     records = []
     for count in manifest["frame_count_ablation"]:
         for case in cases:
+            torch.cuda.empty_cache()
             paths = sampled_frames(case["frames"], count)
             content = [
                 {"type": "image", "url": str((args.dataset / path).resolve())}
@@ -84,7 +87,7 @@ def main() -> None:
             started = time.perf_counter()
             with torch.inference_mode():
                 generated = model.generate(
-                    **inputs, max_new_tokens=8, do_sample=False,
+                    **inputs, max_new_tokens=12, do_sample=False,
                     return_dict_in_generate=True, output_scores=True,
                 )
             latency = (time.perf_counter() - started) * 1000
