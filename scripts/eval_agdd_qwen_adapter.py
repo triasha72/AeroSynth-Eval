@@ -27,6 +27,42 @@ def predicted_classes(raw: str) -> list[str]:
     return [name for name in CLASS_NAMES.values() if name in lowered]
 
 
+def classification_metrics(records: list[dict[str, object]]) -> dict[str, object]:
+    """Compute deterministic multilabel metrics without optional ML dependencies."""
+    def ratio(numerator: int, denominator: int) -> float:
+        return numerator / denominator if denominator else 0.0
+
+    per_class = {}
+    totals = Counter()
+    for name in CLASS_NAMES.values():
+        true_positive = false_positive = false_negative = 0
+        for row in records:
+            reference = set(row["reference"])
+            prediction = set(row["prediction"])
+            true_positive += int(name in reference and name in prediction)
+            false_positive += int(name not in reference and name in prediction)
+            false_negative += int(name in reference and name not in prediction)
+        precision = ratio(true_positive, true_positive + false_positive)
+        recall = ratio(true_positive, true_positive + false_negative)
+        f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
+        per_class[name] = {
+            "precision": precision,
+            "recall": recall,
+            "f1": f1,
+            "support": true_positive + false_negative,
+        }
+        totals.update(tp=true_positive, fp=false_positive, fn=false_negative)
+    macro_f1 = sum(metric["f1"] for metric in per_class.values()) / len(per_class)
+    micro_precision = ratio(totals["tp"], totals["tp"] + totals["fp"])
+    micro_recall = ratio(totals["tp"], totals["tp"] + totals["fn"])
+    micro_f1 = (
+        2 * micro_precision * micro_recall / (micro_precision + micro_recall)
+        if micro_precision + micro_recall
+        else 0.0
+    )
+    return {"per_class": per_class, "macro_f1": macro_f1, "micro_f1": micro_f1}
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset", type=Path, required=True)
@@ -112,6 +148,7 @@ def main() -> None:
         "parse_rate": sum(bool(row["prediction"]) for row in records) / len(records),
         "mean_latency_ms": sum(row["latency_ms"] for row in records) / len(records),
         "predicted_class_counts": dict(sorted(predicted_distribution.items())),
+        "classification_metrics": classification_metrics(records),
         "records": records,
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)

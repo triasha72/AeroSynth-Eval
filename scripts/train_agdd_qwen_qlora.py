@@ -25,29 +25,36 @@ def classes_in(path: Path) -> str:
 
 
 def build_dataset(  # type: ignore[no-untyped-def]
-    root: Path, split: str, rare_class_oversampling: bool = False
+    root: Path,
+    split: str,
+    rare_class_oversampling: bool = False,
+    completion_only_loss: bool = False,
 ):
     from datasets import Dataset, Image, List
 
     records = []
     for label_path in sorted((root / "data" / "labels" / split).glob("*.txt")):
         image_path = root / "data" / "image" / split / f"{label_path.stem}.png"
-        record = {
-                "images": [str(image_path)],
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": [
-                            {"type": "image"},
-                            {"type": "text", "text": PROMPT},
-                        ],
-                    },
-                    {
-                        "role": "assistant",
-                        "content": [{"type": "text", "text": classes_in(label_path)}],
-                    },
+        prompt = [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "image"},
+                    {"type": "text", "text": PROMPT},
                 ],
             }
+        ]
+        completion = [
+            {
+                "role": "assistant",
+                "content": [{"type": "text", "text": classes_in(label_path)}],
+            }
+        ]
+        record = {"images": [str(image_path)]}
+        if completion_only_loss:
+            record.update({"prompt": prompt, "completion": completion})
+        else:
+            record["messages"] = prompt + completion
         oversample = rare_class_oversampling and split == "train" and 2 in class_ids_in(label_path)
         repetitions = 7 if oversample else 1
         records.extend([record] * repetitions)
@@ -61,6 +68,7 @@ def main() -> None:
     parser.add_argument("--max-steps", type=int, default=20)
     parser.add_argument("--eval-steps", type=int, default=10)
     parser.add_argument("--rare-class-oversampling", action="store_true")
+    parser.add_argument("--completion-only-loss", action="store_true")
     args = parser.parse_args()
 
     import torch
@@ -73,9 +81,14 @@ def main() -> None:
     from trl import SFTConfig, SFTTrainer
 
     train_dataset = build_dataset(
-        args.dataset, "train", rare_class_oversampling=args.rare_class_oversampling
+        args.dataset,
+        "train",
+        rare_class_oversampling=args.rare_class_oversampling,
+        completion_only_loss=args.completion_only_loss,
     )
-    eval_dataset = build_dataset(args.dataset, "val")
+    eval_dataset = build_dataset(
+        args.dataset, "val", completion_only_loss=args.completion_only_loss
+    )
     quantization = BitsAndBytesConfig(
         load_in_4bit=True,
         bnb_4bit_use_double_quant=True,
@@ -126,6 +139,7 @@ def main() -> None:
         load_best_model_at_end=True,
         metric_for_best_model="eval_loss",
         greater_is_better=False,
+        completion_only_loss=args.completion_only_loss,
         report_to="none",
         seed=17,
         dataset_kwargs={"skip_prepare_dataset": True},
@@ -151,7 +165,7 @@ def main() -> None:
         "lora_rank": 8,
         "lora_alpha": 16,
         "rare_class_oversampling": args.rare_class_oversampling,
-        "loss_scope": "full_sequence (TRL does not support assistant_only_loss for VLMs)",
+        "loss_scope": "completion_only" if args.completion_only_loss else "full_sequence",
         "best_checkpoint": trainer.state.best_model_checkpoint,
         "best_metric": trainer.state.best_metric,
         "metrics": result.metrics,
