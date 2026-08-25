@@ -1,0 +1,46 @@
+{
+  "claim_scope": "agdd_native_held_out_crack_targeted_completion_only_qlora",
+  "dataset": {
+    "held_out_examples": 22,
+    "name": "AGDD",
+    "source_commit": "4b5daa92929934f30b1155033c3ce67b7701960f",
+    "train_examples_before_oversampling": 197
+  },
+  "execution_environment": "Google Colab Tesla T4, 15360 MiB",
+  "model_id": "Qwen/Qwen2.5-VL-3B-Instruct",
+  "promoted": false,
+  "rejection_reason": "Crack recall recovered, but protected exact match regressed from 5/22 to 2/22 and latency increased.",
+  "training": {
+    "best_checkpoint": 30,
+    "best_validation_loss": 0.5104405283927917,
+    "eval_steps": 10,
+    "loss_scope": "completion_only",
+    "max_steps": 49,
+    "rare_crack_example_repeat_factor": 7,
+    "runtime_seconds": 926.2777,
+    "steps_per_second": 0.053,
+    "train_loss": 0.5687114730173227,
+    "training_evidence_sha256": "8d458f83964bb803e792d26cda0a85c78afa700f138222ec99920d34c972358b"
+  },
+  "tuned_validation": {
+    "case_count": 22,
+    "exact_match_accuracy": 0.09090909090909091,
+    "macro_f1": 0.6073848102686624,
+    "mean_latency_ms": 933.6144380909817,
+    "micro_f1": 0.6470588235294117,
+    "parse_rate": 1.0,
+    "per_class": {
+      "contusion": {"f1": 0.5217391304347826, "precision": 0.5454545454545454, "recall": 0.5, "support": 12},
+      "crack": {"f1": 0.35294117647058826, "precision": 0.21428571428571427, "recall": 1.0, "support": 3},
+      "scratches": {"f1": 0.7272727272727272, "precision": 0.6666666666666666, "recall": 0.8, "support": 15},
+      "spot": {"f1": 0.8275862068965518, "precision": 0.8571428571428571, "recall": 0.8, "support": 15}
+    },
+    "predicted_class_counts": {
+      "contusion": 11,
+      "crack": 14,
+      "scratches": 18,
+      "spot": 14
+    },
+    "report_sha256": "bd1725d0ee5cc6d6d4afcada80148a6c0fe69d7495f08eb7075aaea2f9e84da9"
+  }
+}

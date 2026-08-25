@@ -74,3 +74,19 @@ It is not a final model: latency increases by 200 ms and crack recall regresses 
 The next iteration should target the three crack examples through loss weighting or carefully bounded
 sampling while retaining completion-only loss, and must reject any candidate that loses the aggregate
 gains above.
+
+## Crack-targeted completion-only iteration
+
+A fourth run combined completion-only loss with the existing 7x repeat factor for training examples
+containing crack. It recovered crack recall but failed the predeclared promotion gate because protected
+exact match regressed.
+
+| Model | Exact match | Macro-F1 | Micro-F1 | Crack F1 | Mean latency | Decision |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| Completion-only | **22.73% (5/22)** | 0.494 | 0.636 | 0.000 | **806 ms** | Promote |
+| Completion-only + crack repeat | 9.09% (2/22) | **0.607** | **0.647** | **0.353** | 934 ms | Reject |
+
+The targeted adapter reached crack precision 0.214 and recall 1.0, but it predicted crack on 14/22
+examples and reduced exact-set correctness. This demonstrates a real tradeoff rather than a universal
+improvement. The untargeted completion-only adapter remains the flagship checkpoint; future work
+should tune a class-specific threshold or use a softer weighted loss rather than 7x duplication.
