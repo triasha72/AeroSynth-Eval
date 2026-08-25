@@ -50,7 +50,7 @@ test assets—not operational inspection imagery or physical simulations.
 | Layer | Implemented boundary |
 |---|---|
 | Benchmark integrity | 48 frozen AeroSynth scenarios plus a checksummed AGDD 11-selection/11-protected-test manifest |
-| Model execution | Shared-session MLX-VLM and free Kaggle/P100 Transformers development batches |
+| Model execution | Protected-test Qwen2.5-VL and independent SmolVLM2 results on a free Colab T4 |
 | Human workflow | Rater templates, ingestion, agreement analysis, manual adjudication, and human-alignment contracts |
 | Judge evaluation | GenAI-Bench/RichHF adapters, pairwise and multi-judge comparison, preference metrics, and calibration |
 | Adaptation | Real Qwen2.5-VL-3B completion-only QLoRA; protected exact match improved from 1/11 to 3/11 |

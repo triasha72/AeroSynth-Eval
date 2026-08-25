@@ -32,6 +32,19 @@
     "nll": 0.889042323779414,
     "raw_report_sha256": "5cad919bea6c0e395709e012f053392c9ae13988dee64426238fc3dc25162a9e"
   },
+  "smolvlm2_base": {
+    "model_id": "HuggingFaceTB/SmolVLM2-2.2B-Instruct",
+    "exact_match_accuracy": 0.09090909090909091,
+    "exact_match_ci95": [0.0, 0.2727272727272727],
+    "macro_f1": 0.36136363636363633,
+    "micro_f1": 0.4117647058823529,
+    "mean_latency_ms": 1318.814012272717,
+    "mean_latency_ci95_ms": [1175.4976747272187, 1586.659908272767],
+    "ece": 0.46152885122732684,
+    "brier": 0.31749862073292956,
+    "nll": 0.8372310011428676,
+    "raw_report_sha256": "0b9518a853886fb89a26e92c8825127b61cdf7f8bc242d71bf3b596db811f4e5"
+  },
   "claim_scope": "One-time pilot protected-test comparison. Test examples were not used for checkpoint selection. Confidence intervals overlap; do not claim statistical superiority.",
   "remaining_regression": "Tuned crack recall is 0.0 versus base recall 1.0; tuned mean latency is higher."
 }

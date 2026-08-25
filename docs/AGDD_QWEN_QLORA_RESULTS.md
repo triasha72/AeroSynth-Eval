@@ -105,6 +105,7 @@ once on a Colab Tesla T4.
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | Base | 9.09% (0–27.27%) | 0.177 | 0.229 | 0.638 | 0.499 | 707 ms (542–989) |
 | Completion-only QLoRA | **27.27% (0–54.55%)** | **0.494** | **0.636** | **0.459** | **0.344** | 924 ms (742–1,219) |
+| SmolVLM2-2.2B base | 9.09% (0–27.27%) | 0.361 | 0.412 | 0.462 | **0.317** | 1,319 ms (1,175–1,587) |
 
 The tuned checkpoint improves exact set match by 18.18 percentage points and improves both aggregate
 F1 and calibration, but costs 218 ms mean latency. The sample is deliberately small, so the exact
@@ -113,3 +114,8 @@ claim. Crack remains the clearest regression: base crack recall was 1.0 (low pre
 crack recall was 0.0. Tuned contusion recall reached 1.0, scratches recall 0.5, and spot recall 0.625.
 The compact evidence record is `reports/agdd_protected_qwen25_vl_3b_summary.json`; it includes raw
 report hashes and the bootstrap configuration.
+
+SmolVLM2 is an independent model family, not another Qwen checkpoint. It tied base Qwen on exact
+set match, exceeded it on macro/micro-F1 and calibration, and was the slowest model. Its principal
+failure was contusion recall 0.0; crack precision/recall were 0.333/0.5, scratches 0.5/0.5, and spot
+1.0/0.375. Model choice and prompt were fixed before its one-time protected run.
