@@ -38,10 +38,10 @@ def main() -> None:
         raise SystemExit(f"Refusing to overwrite {args.output}")
 
     import torch
-    from transformers import AutoModelForMultimodalLM, AutoProcessor
+    from transformers import AutoProcessor, SmolVLMForConditionalGeneration
 
     processor = AutoProcessor.from_pretrained(MODEL_ID)
-    model = AutoModelForMultimodalLM.from_pretrained(
+    model = SmolVLMForConditionalGeneration.from_pretrained(
         MODEL_ID, device_map="auto", dtype=torch.float16
     ).eval()
     records = []
