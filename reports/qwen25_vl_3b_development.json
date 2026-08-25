@@ -1,0 +1,120 @@
+{
+  "accuracy": 0.3333333333333333,
+  "case_count": 12,
+  "claim_scope": "development_baseline_only",
+  "device": "cuda",
+  "hardware": "Linux-6.6.122+-x86_64-with-glibc2.35",
+  "mean_latency_ms": 1246.3067973333418,
+  "model_id": "Qwen/Qwen2.5-VL-3B-Instruct",
+  "parse_rate": 1.0,
+  "records": [
+    {
+      "correct": true,
+      "latency_ms": 3988.1295779999846,
+      "parse_success": true,
+      "prediction": "no_visible_defect",
+      "raw_output": "no_visible_defect",
+      "reference": "no_visible_defect",
+      "scenario_id": "fuselage-clean-oblique-directional"
+    },
+    {
+      "correct": false,
+      "latency_ms": 1010.7132979999847,
+      "parse_success": true,
+      "prediction": "no_visible_defect",
+      "raw_output": "no_visible_defect",
+      "reference": "corrosion",
+      "scenario_id": "fuselage-corrosion-close-diffuse"
+    },
+    {
+      "correct": false,
+      "latency_ms": 982.7186130000314,
+      "parse_success": true,
+      "prediction": "no_visible_defect",
+      "raw_output": "no_visible_defect",
+      "reference": "surface_crack",
+      "scenario_id": "fuselage-crack-oblique-blur"
+    },
+    {
+      "correct": false,
+      "latency_ms": 979.8843579999925,
+      "parse_success": true,
+      "prediction": "no_visible_defect",
+      "raw_output": "no_visible_defect",
+      "reference": "coating_damage",
+      "scenario_id": "fuselage-coating-close-glare"
+    },
+    {
+      "correct": true,
+      "latency_ms": 986.4739340000028,
+      "parse_success": true,
+      "prediction": "no_visible_defect",
+      "raw_output": "no_visible_defect",
+      "reference": "no_visible_defect",
+      "scenario_id": "wing-clean-close-glare"
+    },
+    {
+      "correct": false,
+      "latency_ms": 988.8129760000197,
+      "parse_success": true,
+      "prediction": "no_visible_defect",
+      "raw_output": "no_visible_defect",
+      "reference": "corrosion",
+      "scenario_id": "wing-corrosion-oblique-directional"
+    },
+    {
+      "correct": false,
+      "latency_ms": 994.5258940000485,
+      "parse_success": true,
+      "prediction": "no_visible_defect",
+      "raw_output": "no_visible_defect",
+      "reference": "surface_crack",
+      "scenario_id": "wing-crack-close-diffuse"
+    },
+    {
+      "correct": false,
+      "latency_ms": 996.2808729999892,
+      "parse_success": true,
+      "prediction": "no_visible_defect",
+      "raw_output": "no_visible_defect",
+      "reference": "coating_damage",
+      "scenario_id": "wing-coating-oblique-blur"
+    },
+    {
+      "correct": true,
+      "latency_ms": 997.6444880000486,
+      "parse_success": true,
+      "prediction": "no_visible_defect",
+      "raw_output": "no_visible_defect",
+      "reference": "no_visible_defect",
+      "scenario_id": "empennage-clean-close-diffuse"
+    },
+    {
+      "correct": true,
+      "latency_ms": 940.46425800002,
+      "parse_success": true,
+      "prediction": "corrosion",
+      "raw_output": "corrosion",
+      "reference": "corrosion",
+      "scenario_id": "empennage-corrosion-close-glare"
+    },
+    {
+      "correct": false,
+      "latency_ms": 1002.2203170000239,
+      "parse_success": true,
+      "prediction": "no_visible_defect",
+      "raw_output": "no_visible_defect",
+      "reference": "surface_crack",
+      "scenario_id": "empennage-crack-oblique-directional"
+    },
+    {
+      "correct": false,
+      "latency_ms": 1087.8129809999564,
+      "parse_success": true,
+      "prediction": "no_visible_defect",
+      "raw_output": "no_visible_defect",
+      "reference": "coating_damage",
+      "scenario_id": "empennage-coating-oblique-blur"
+    }
+  ]
+}
