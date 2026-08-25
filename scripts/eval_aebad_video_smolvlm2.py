@@ -70,6 +70,12 @@ def main() -> None:
     model = SmolVLMForConditionalGeneration.from_pretrained(
         MODEL_ID, device_map="auto", dtype=torch.float16
     ).eval()
+    label_token_ids = {
+        label: processor.tokenizer.encode(label.upper(), add_special_tokens=False)
+        for label in ("good", "anomaly")
+    }
+    if any(len(token_ids) != 1 for token_ids in label_token_ids.values()):
+        raise RuntimeError(f"Expected single-token class labels, got {label_token_ids}")
     records = []
     for count in manifest["frame_count_ablation"]:
         for case in cases:
@@ -86,20 +92,16 @@ def main() -> None:
             ).to(model.device)
             started = time.perf_counter()
             with torch.inference_mode():
-                generated = model.generate(
-                    **inputs, max_new_tokens=12, do_sample=False,
-                    return_dict_in_generate=True, output_scores=True,
-                )
+                logits = model(**inputs).logits[:, -1, :]
             latency = (time.perf_counter() - started) * 1000
-            prompt_length = inputs["input_ids"].shape[-1]
-            tokens = generated.sequences[:, prompt_length:]
-            log_probs = [
-                score.log_softmax(dim=-1).gather(1, tokens[:, index, None]).squeeze(1)
-                for index, score in enumerate(generated.scores)
-            ]
-            confidence = torch.stack(log_probs).mean().exp().item() if log_probs else 0.0
-            raw = processor.batch_decode(tokens, skip_special_tokens=True)[0]
-            prediction = parse_prediction(raw)
+            class_logits = torch.stack(
+                [logits[0, label_token_ids[label][0]] for label in ("good", "anomaly")]
+            )
+            probabilities = class_logits.float().softmax(dim=0)
+            predicted_index = int(probabilities.argmax())
+            prediction = ("good", "anomaly")[predicted_index]
+            confidence = float(probabilities[predicted_index])
+            raw = prediction.upper()
             records.append({
                 "case_id": case["case_id"], "video": case["video"],
                 "frame_count": count, "reference": case["label"],
