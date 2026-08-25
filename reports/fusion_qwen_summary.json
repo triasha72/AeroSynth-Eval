@@ -1,0 +1,15 @@
+{
+  "case_count": 12,
+  "claim_scope": "synthetic_operator_transcript_fusion_robustness",
+  "execution_environment": "Google Colab Tesla T4, 15360 MiB",
+  "model_id": "Qwen/Qwen2.5-VL-3B-Instruct",
+  "report_sha256": "577fce0446b578a347902ac077d26a5debfa91b68a1e14897d144954df9e7c32",
+  "summaries": {
+    "fusion": {"accuracy": 0.75, "case_count": 12, "latency_p50_ms": 486.28183900018485, "latency_p95_ms": 512.5630900001852},
+    "missing_transcript": {"accuracy": 0.16666666666666666, "case_count": 12, "latency_p50_ms": 385.90572500106646, "latency_p95_ms": 475.2326260004338},
+    "noisy_transcript": {"accuracy": 0.75, "case_count": 12, "latency_p50_ms": 493.601274500179, "latency_p95_ms": 531.8360939982085},
+    "transcript_only": {"accuracy": 1.0, "case_count": 12, "latency_p50_ms": 163.07655249966047, "latency_p95_ms": 216.3918400001421},
+    "vision_only": {"accuracy": 0.16666666666666666, "case_count": 12, "latency_p50_ms": 451.4396750009837, "latency_p95_ms": 820.5064150006365}
+  },
+  "transcript_provenance": "Deterministic condition-grounded operator-note templates; no waveform or ASR stage."
+}
