@@ -71,7 +71,7 @@ def main() -> None:
         MODEL_ID, device_map="auto", dtype=torch.float16
     ).eval()
     label_token_ids = {
-        label: processor.tokenizer.encode(label.upper(), add_special_tokens=False)
+        label: processor.tokenizer.encode(f" {label}", add_special_tokens=False)
         for label in ("good", "anomaly")
     }
     if any(len(token_ids) != 1 for token_ids in label_token_ids.values()):
