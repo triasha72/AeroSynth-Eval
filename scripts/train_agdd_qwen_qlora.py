@@ -105,7 +105,7 @@ def main() -> None:
         gradient_checkpointing_kwargs={"use_reentrant": False},
         learning_rate=2e-4,
         max_length=None,
-        fp16=True,
+        fp16=False,
         logging_steps=1,
         eval_strategy="no",
         save_strategy="no",
