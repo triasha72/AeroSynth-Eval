@@ -1,0 +1,65 @@
+{
+  "dataset": "AGDD",
+  "scope": "aircraft glass canopy defect detection with paired illumination",
+  "upstream": "https://github.com/core128/AGDD",
+  "git_commit": "4b5daa92929934f30b1155033c3ce67b7701960f",
+  "license": "CC BY-NC-SA 4.0",
+  "class_mapping": {
+    "0": "contusion",
+    "1": "scratches",
+    "2": "crack",
+    "3": "spot"
+  },
+  "splits": {
+    "train": {
+      "paired_samples": 197,
+      "image_files": 394,
+      "identical_image_pairs": 0,
+      "dimensions": {
+        "640x640": 197
+      },
+      "class_instances": {
+        "contusion": 125,
+        "scratches": 189,
+        "crack": 25,
+        "spot": 184
+      }
+    },
+    "val": {
+      "paired_samples": 22,
+      "image_files": 44,
+      "identical_image_pairs": 0,
+      "dimensions": {
+        "640x640": 22
+      },
+      "class_instances": {
+        "contusion": 13,
+        "scratches": 28,
+        "crack": 4,
+        "spot": 31
+      }
+    }
+  },
+  "totals": {
+    "paired_samples": 219,
+    "image_files": 438,
+    "class_instances": {
+      "contusion": 138,
+      "scratches": 217,
+      "crack": 29,
+      "spot": 215
+    }
+  },
+  "checks": {
+    "all_pairs_complete": true,
+    "all_obb_labels_valid": true,
+    "all_rect_labels_valid": true,
+    "obb_rect_class_counts_match": true
+  },
+  "manifest_sha256": "fa43094cb00b42808c522d321b69c7ca64695a39a49a0a18047282736df096b8",
+  "limitations": [
+    "Labels are object-detection boxes, not independent human quality ratings.",
+    "The release is noncommercial and share-alike; verify downstream use.",
+    "Static paired illumination is not temporal video."
+  ]
+}

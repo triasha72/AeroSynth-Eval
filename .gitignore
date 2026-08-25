@@ -17,3 +17,9 @@ data/processed/
 data/annotations/private/
 outputs/
 data/external/
+
+# Downloaded/derived public datasets are pinned by provenance reports, not vendored.
+data/public/
+
+# Local VLM manifests may contain machine-specific absolute paths.
+data/training/
