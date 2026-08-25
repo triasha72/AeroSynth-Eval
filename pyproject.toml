@@ -34,6 +34,7 @@ train = [
 kaggle = [
   "accelerate>=1.10,<2.0",
   "bitsandbytes>=0.47,<1.0; platform_system == 'Linux'",
+  "num2words>=0.5.14,<1.0",
   "qwen-vl-utils>=0.0.14,<1.0",
   "torch>=2.4,<3.0",
   "transformers>=4.57,<5.0",
