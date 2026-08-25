@@ -31,6 +31,20 @@ caused by the tiny, multilabel, class-imbalanced training set plus an overly sho
 The result proves that the VLM QLoRA pipeline executes end to end; it does not prove successful
 domain adaptation.
 
-The next training iteration should use class-balanced sampling, an explicit `none` target where
-appropriate, assistant-only loss, and validation-based early stopping. It should be compared against
-the same frozen 22 examples and retained only if exact match and per-class F1 improve.
+## Balanced, checkpoint-selected iteration
+
+A second 49-step run oversampled every training example containing the rare `crack` class by 7x and
+evaluated all 22 held-out examples every 10 steps. TRL 0.28 rejects `assistant_only_loss=True` for
+vision-language models, so this run retained full-sequence loss and records that limitation instead
+of silently claiming assistant-only masking. Checkpoint 40 was selected by validation loss.
+
+| Iteration | Best validation loss | Exact set match | Mean latency | Decision |
+| --- | ---: | ---: | ---: | --- |
+| Original QLoRA | not measured during training | 0% (0/22) | 1,309 ms | Reject |
+| Balanced + checkpoint selection | 9.4666 at step 40 | 0% (0/22) | 1,377 ms | Reject |
+
+The balanced run still collapsed toward predicting most labels: spot on 22/22 examples, contusion
+on 21/22, crack on 20/22, and scratches on 16/22. It improved neither exact match nor latency and is
+therefore also rejected. The next iteration should change the objective/data formulation rather than
+repeat oversampling: add verified negative examples with an explicit `none` target, report per-class
+precision/recall/F1, and use a VLM-compatible completion-only collator if assistant masking is needed.

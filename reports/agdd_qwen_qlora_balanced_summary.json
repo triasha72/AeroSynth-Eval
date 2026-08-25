@@ -1,0 +1,38 @@
+{
+  "claim_scope": "agdd_native_held_out_balanced_qlora_comparison",
+  "dataset": {
+    "held_out_examples": 22,
+    "name": "AGDD",
+    "source_commit": "4b5daa92929934f30b1155033c3ce67b7701960f",
+    "train_examples_before_oversampling": 197
+  },
+  "execution_environment": "Google Colab Tesla T4, 15360 MiB",
+  "model_id": "Qwen/Qwen2.5-VL-3B-Instruct",
+  "promoted": false,
+  "rejection_reason": "Rare-class oversampling and validation checkpoint selection did not improve held-out exact match; predictions still collapsed toward nearly all classes.",
+  "training": {
+    "best_checkpoint": 40,
+    "best_validation_loss": 9.466575622558594,
+    "eval_steps": 10,
+    "loss_scope": "full_sequence (TRL 0.28 does not support assistant_only_loss for VLMs)",
+    "max_steps": 49,
+    "rare_crack_example_repeat_factor": 7,
+    "runtime_seconds": 928.3698,
+    "steps_per_second": 0.053,
+    "train_loss": 11.981556036034409,
+    "training_evidence_sha256": "8811bdf78e592716f7a2ee7325a14b80dfd00ca88918226f11b7a7b9e9ac5ad0"
+  },
+  "tuned_validation": {
+    "case_count": 22,
+    "exact_match_accuracy": 0.0,
+    "mean_latency_ms": 1376.8453370908405,
+    "parse_rate": 1.0,
+    "predicted_class_counts": {
+      "contusion": 21,
+      "crack": 20,
+      "scratches": 16,
+      "spot": 22
+    },
+    "report_sha256": "1bd0ffa365a690428d148bb9cc891add191775d8a013f6ea783f257c45b5867a"
+  }
+}
