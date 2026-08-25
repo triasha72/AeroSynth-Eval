@@ -1,0 +1,65 @@
+{
+  "adapter": {
+    "archive_name": "agdd-qwen-completion-epoch.tar.gz",
+    "archive_sha256": "c8074fd3c193a5c7400e7228d5d0bc7944af40574fbb529036959180dc04564d",
+    "archive_size": "32 MiB",
+    "lora_alpha": 16,
+    "lora_rank": 8
+  },
+  "base_validation": {
+    "case_count": 22,
+    "exact_match_accuracy": 0.045454545454545456,
+    "macro_f1": 0.2215909090909091,
+    "mean_latency_ms": 605.654798954633,
+    "micro_f1": 0.27397260273972607,
+    "parse_rate": 1.0,
+    "predicted_class_counts": {
+      "crack": 21,
+      "spot": 7
+    },
+    "report_sha256": "584803bd144e9048efbadb3c6a5b2f89298d94826f08753980ad0ebbc007522b"
+  },
+  "claim_scope": "agdd_native_held_out_completion_only_qlora_comparison",
+  "dataset": {
+    "held_out_examples": 22,
+    "name": "AGDD",
+    "source_commit": "4b5daa92929934f30b1155033c3ce67b7701960f",
+    "train_examples": 197
+  },
+  "execution_environment": "Google Colab Tesla T4, 15360 MiB",
+  "model_id": "Qwen/Qwen2.5-VL-3B-Instruct",
+  "promoted": true,
+  "promotion_scope": "best AGDD tuning candidate; not final because crack recall regressed to zero",
+  "training": {
+    "best_checkpoint": 40,
+    "best_validation_loss": 0.4742855131626129,
+    "eval_steps": 10,
+    "loss_scope": "completion_only",
+    "max_steps": 49,
+    "rare_class_oversampling": false,
+    "runtime_seconds": 929.584,
+    "steps_per_second": 0.053,
+    "train_loss": 0.5745199602477404,
+    "training_evidence_sha256": "800eb29edb3bb446c25e92311480b1eb4145bbb0e2e49eb8d04b61cda3fff641"
+  },
+  "tuned_validation": {
+    "case_count": 22,
+    "exact_match_accuracy": 0.22727272727272727,
+    "macro_f1": 0.49381232193732194,
+    "mean_latency_ms": 805.6874034999634,
+    "micro_f1": 0.6363636363636364,
+    "parse_rate": 1.0,
+    "per_class": {
+      "contusion": {"f1": 0.6875, "precision": 0.55, "recall": 0.9166666666666666, "support": 12},
+      "crack": {"f1": 0.0, "precision": 0.0, "recall": 0.0, "support": 3},
+      "scratches": {"f1": 0.5185185185185186, "precision": 0.5833333333333334, "recall": 0.4666666666666667, "support": 15},
+      "spot": {"f1": 0.7692307692307692, "precision": 0.9090909090909091, "recall": 0.6666666666666666, "support": 15}
+    },
+    "predicted_class_counts": {
+      "contusion": 20,
+      "scratches": 12,
+      "spot": 11
+    },
+    "report_sha256": "7a51fd9a5d94debdb20e54e6d3cd5f216543ef5c224916604a93d9aeaecb7061"
+  }
+}
