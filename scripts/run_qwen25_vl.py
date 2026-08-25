@@ -16,7 +16,7 @@ CODE_TO_LABEL = {"a": LABELS[0], "b": LABELS[1], "c": LABELS[2], "d": LABELS[3]}
 
 
 def normalize(raw: str, prompt_style: str) -> str | None:
-    if prompt_style == "defect_sensitive":
+    if prompt_style in {"defect_sensitive", "balanced_forced_choice"}:
         return CODE_TO_LABEL.get(raw.strip().lower().rstrip(".():"))
     value = raw.strip().lower().replace(" ", "_").replace("-", "_").rstrip(".,")
     matches = [label for label in LABELS if label in value]
@@ -36,7 +36,9 @@ def main() -> None:
     )
     parser.add_argument("--limit", type=int)
     parser.add_argument(
-        "--prompt-style", choices=("baseline", "defect_sensitive"), default="baseline"
+        "--prompt-style",
+        choices=("baseline", "defect_sensitive", "balanced_forced_choice"),
+        default="baseline",
     )
     args = parser.parse_args()
     if args.output.exists():
@@ -58,18 +60,28 @@ def main() -> None:
     records = []
     for index, case in enumerate(cases, start=1):
         image_path = (args.data_root / case["image_reference"]).resolve()
-        prompt = (
-            "Inspect this aircraft panel carefully for subtle defects. A=none: intact, "
-            "uniform surface with no anomaly. B=corrosion: mottled discoloration, oxidation, "
-            "or pitting. C=surface crack: a thin linear fracture or branching discontinuity. "
-            "D=coating damage: peeling, flaking, scraping, or missing surface coating. Choose A "
-            "only when none of B/C/D is visible. Return exactly one letter: A, B, C, or D."
-            if args.prompt_style == "defect_sensitive"
-            else (
+        if args.prompt_style == "defect_sensitive":
+            prompt = (
+                "Inspect this aircraft panel carefully for subtle defects. A=none: intact, "
+                "uniform surface with no anomaly. B=corrosion: mottled discoloration, oxidation, "
+                "or pitting. C=surface crack: a thin linear fracture or branching discontinuity. "
+                "D=coating damage: peeling, flaking, scraping, or missing surface coating. "
+                "Choose A only when none of B/C/D is visible. Return exactly one letter: "
+                "A, B, C, or D."
+            )
+        elif args.prompt_style == "balanced_forced_choice":
+            prompt = (
+                "This is a balanced four-class visual benchmark; do not default to the clean "
+                "class. Compare the most diagnostic visible region against all choices: A=intact "
+                "surface with no defect; B=corrosion or pitting; C=thin or branching surface "
+                "crack; D=peeled, scraped, flaked, or missing coating. Select the single best "
+                "visual match. Return exactly one letter: A, B, C, or D."
+            )
+        else:
+            prompt = (
                 "Classify this aircraft-panel image. Return exactly one label: "
                 "no_visible_defect, corrosion, surface_crack, or coating_damage."
             )
-        )
         messages = [
             {
                 "role": "user",

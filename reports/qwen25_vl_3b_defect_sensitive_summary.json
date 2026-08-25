@@ -1,0 +1,17 @@
+{
+  "accuracy": 0.25,
+  "case_count": 12,
+  "claim_scope": "development_prompt_experiment_only",
+  "device": "cuda",
+  "execution_environment": "Google Colab Tesla T4, 15360 MiB",
+  "mean_latency_ms": 1030.5377319166762,
+  "model_id": "Qwen/Qwen2.5-VL-3B-Instruct",
+  "parse_rate": 1.0,
+  "prediction_distribution": {
+    "no_visible_defect": 12
+  },
+  "prompt_style": "defect_sensitive",
+  "promoted": false,
+  "rejection_reason": "Accuracy regressed from 33.3% to 25%; defect recall remained zero.",
+  "source_report_sha256": "c20a99d3d2edf21287a60b15e79356cf8afece11841da04c8dd9f34c3ca30ec1"
+}
