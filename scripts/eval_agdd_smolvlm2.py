@@ -48,7 +48,7 @@ def main() -> None:
     for label_path in selected_labels(args.dataset, args.split_manifest, args.subset):
         image_path = args.dataset / "data" / "image" / "val" / f"{label_path.stem}.png"
         messages = [{"role": "user", "content": [
-            {"type": "image", "url": f"file://{image_path.resolve()}"},
+            {"type": "image", "url": str(image_path.resolve())},
             {"type": "text", "text": PROMPT},
         ]}]
         inputs = processor.apply_chat_template(
