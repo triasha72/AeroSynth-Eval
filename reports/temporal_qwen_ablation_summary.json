@@ -1,0 +1,38 @@
+{
+  "case_count": 12,
+  "claim_scope": "derived_multiframe_aerosynth_temporal_ablation",
+  "execution_environment": "Google Colab Tesla T4, 15360 MiB",
+  "model_id": "Qwen/Qwen2.5-VL-3B-Instruct",
+  "report_sha256": "3fc9bf4c367887eb57cc2f2ad4be2a854a697fbb09149eb182cd7769fef96d0f",
+  "sequence_provenance": "Deterministic camera-motion and brightness variants derived from four independently rendered capture profiles per region-condition case; not real captured video.",
+  "summaries": {
+    "1": {
+      "accuracy": 0.25,
+      "case_count": 12,
+      "failure_counts_by_condition": {"coating": 3, "corrosion": 3, "crack": 3},
+      "latency_p50_ms": 181.70619249985975,
+      "latency_p95_ms": 207.56243899995752
+    },
+    "4": {
+      "accuracy": 0.25,
+      "case_count": 12,
+      "failure_counts_by_condition": {"coating": 3, "corrosion": 3, "crack": 3},
+      "latency_p50_ms": 401.541039499989,
+      "latency_p95_ms": 437.53043099968636
+    },
+    "8": {
+      "accuracy": 0.25,
+      "case_count": 12,
+      "failure_counts_by_condition": {"coating": 3, "corrosion": 3, "crack": 3},
+      "latency_p50_ms": 711.2101610000536,
+      "latency_p95_ms": 758.8598799993633
+    },
+    "16": {
+      "accuracy": 0.25,
+      "case_count": 12,
+      "failure_counts_by_condition": {"coating": 3, "corrosion": 3, "crack": 3},
+      "latency_p50_ms": 1490.9106854997844,
+      "latency_p95_ms": 1523.6073480000414
+    }
+  }
+}
