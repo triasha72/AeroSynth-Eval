@@ -21,14 +21,14 @@ def classes_in(path: Path) -> str:
 
 
 def build_dataset(root: Path, split: str):  # type: ignore[no-untyped-def]
-    from datasets import Dataset, Image
+    from datasets import Dataset, Image, List
 
     records = []
     for label_path in sorted((root / "data" / "labels" / split).glob("*.txt")):
         image_path = root / "data" / "image" / split / f"{label_path.stem}.png"
         records.append(
             {
-                "image": str(image_path),
+                "images": [str(image_path)],
                 "messages": [
                     {
                         "role": "user",
@@ -44,7 +44,7 @@ def build_dataset(root: Path, split: str):  # type: ignore[no-untyped-def]
                 ],
             }
         )
-    return Dataset.from_list(records).cast_column("image", Image())
+    return Dataset.from_list(records).cast_column("images", List(Image()))
 
 
 def main() -> None:
