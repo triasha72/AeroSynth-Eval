@@ -26,6 +26,7 @@ def test_manifest_keeps_video1_out_of_test(tmp_path: Path) -> None:
             folder.mkdir(parents=True)
             for index in range(20):
                 (folder / f"{index}.jpg").write_bytes(str(index).encode())
+            (folder / "._0.jpg").write_bytes(b"resource fork")
     payload = build_manifest(tmp_path)
     assert {case["video"] for case in payload["selection_cases"]} == {"video1"}
     assert {case["video"] for case in payload["test_cases"]} == {"video2", "video3"}

@@ -10,7 +10,10 @@ from pathlib import Path
 
 
 def numeric_frames(folder: Path) -> list[Path]:
-    return sorted(folder.glob("*.jpg"), key=lambda path: int(path.stem))
+    return sorted(
+        (path for path in folder.glob("*.jpg") if path.stem.isdigit()),
+        key=lambda path: int(path.stem),
+    )
 
 
 def make_cases(root: Path, video: str, label: str, windows: int = 4) -> list[dict[str, object]]:
