@@ -15,19 +15,24 @@ PROMPT = (
 )
 
 
+def class_ids_in(path: Path) -> list[int]:
+    return sorted({int(line.split()[0]) for line in path.read_text().splitlines() if line})
+
+
 def classes_in(path: Path) -> str:
-    ids = sorted({int(line.split()[0]) for line in path.read_text().splitlines() if line})
+    ids = class_ids_in(path)
     return ", ".join(CLASS_NAMES[class_id] for class_id in ids)
 
 
-def build_dataset(root: Path, split: str):  # type: ignore[no-untyped-def]
+def build_dataset(  # type: ignore[no-untyped-def]
+    root: Path, split: str, rare_class_oversampling: bool = False
+):
     from datasets import Dataset, Image, List
 
     records = []
     for label_path in sorted((root / "data" / "labels" / split).glob("*.txt")):
         image_path = root / "data" / "image" / split / f"{label_path.stem}.png"
-        records.append(
-            {
+        record = {
                 "images": [str(image_path)],
                 "messages": [
                     {
@@ -43,7 +48,9 @@ def build_dataset(root: Path, split: str):  # type: ignore[no-untyped-def]
                     },
                 ],
             }
-        )
+        oversample = rare_class_oversampling and split == "train" and 2 in class_ids_in(label_path)
+        repetitions = 7 if oversample else 1
+        records.extend([record] * repetitions)
     return Dataset.from_list(records).cast_column("images", List(Image()))
 
 
@@ -52,6 +59,9 @@ def main() -> None:
     parser.add_argument("--dataset", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--max-steps", type=int, default=20)
+    parser.add_argument("--eval-steps", type=int, default=10)
+    parser.add_argument("--rare-class-oversampling", action="store_true")
+    parser.add_argument("--assistant-only-loss", action="store_true")
     args = parser.parse_args()
 
     import torch
@@ -63,7 +73,9 @@ def main() -> None:
     )
     from trl import SFTConfig, SFTTrainer
 
-    train_dataset = build_dataset(args.dataset, "train")
+    train_dataset = build_dataset(
+        args.dataset, "train", rare_class_oversampling=args.rare_class_oversampling
+    )
     eval_dataset = build_dataset(args.dataset, "val")
     quantization = BitsAndBytesConfig(
         load_in_4bit=True,
@@ -107,8 +119,15 @@ def main() -> None:
         max_length=None,
         fp16=False,
         logging_steps=1,
-        eval_strategy="no",
-        save_strategy="no",
+        eval_strategy="steps",
+        eval_steps=args.eval_steps,
+        save_strategy="steps",
+        save_steps=args.eval_steps,
+        save_total_limit=2,
+        load_best_model_at_end=True,
+        metric_for_best_model="eval_loss",
+        greater_is_better=False,
+        assistant_only_loss=args.assistant_only_loss,
         report_to="none",
         seed=17,
         dataset_kwargs={"skip_prepare_dataset": True},
@@ -133,6 +152,10 @@ def main() -> None:
         "max_steps": args.max_steps,
         "lora_rank": 8,
         "lora_alpha": 16,
+        "rare_class_oversampling": args.rare_class_oversampling,
+        "assistant_only_loss": args.assistant_only_loss,
+        "best_checkpoint": trainer.state.best_model_checkpoint,
+        "best_metric": trainer.state.best_metric,
         "metrics": result.metrics,
     }
     (args.output / "training_evidence.json").write_text(json.dumps(metrics, indent=2) + "\n")
