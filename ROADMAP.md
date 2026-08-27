@@ -1,5 +1,7 @@
 # AeroSynth-Eval evidence roadmap
 
+[Project overview and measured results](README.md)
+
 ## Implemented engineering foundation
 
 - [x] frozen 48-scenario procedural benchmark and protected split

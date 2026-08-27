@@ -1,5 +1,7 @@
 # AeroSynth-Eval
 
+[Portfolio case study](https://triasha72.github.io/Portfolio/case-aerosynth.html)
+
 [![CI](https://github.com/triasha72/AeroSynth-Eval/actions/workflows/ci.yml/badge.svg)](https://github.com/triasha72/AeroSynth-Eval/actions/workflows/ci.yml)
 
 AeroSynth-Eval is an independent research and engineering project exploring how
