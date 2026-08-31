@@ -68,6 +68,17 @@ scenario records: four development examples and two held-out test examples. It i
 intentionally metadata-only, separate from the procedural PNG corpus and future
 human-rating data.
 
+## Real aircraft-domain transfer benchmark
+
+A separate AGDD track now audits and evaluates 219 real paired-illumination
+aircraft glass-canopy samples under the dataset's CC BY-NC-SA 4.0 license. A
+transparent multilabel baseline trained on the official 197-pair training split
+achieved macro F1 `0.6108`, micro F1 `0.5926`, and exact-match accuracy `0.1818`
+on all 22 held-out validation pairs. This result is intentionally separate from
+the synthetic protected test and is not an airworthiness or maintenance-release
+claim. See `docs/AGDD_REAL_IMAGE_BASELINE.md` and the checksummed reports in
+`reports/`.
+
 Read [the dataset card](docs/DATASET_CARD.md) and
 [the annotation guide](docs/ANNOTATION_GUIDE.md) before adding benchmark data.
 

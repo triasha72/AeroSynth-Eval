@@ -1,0 +1,73 @@
+{
+  "schema_version": "1.0",
+  "dataset": "AGDD",
+  "dataset_license": "CC BY-NC-SA 4.0",
+  "model": "paired 32x32 grayscale pixels + one-vs-rest logistic regression",
+  "rows": {
+    "train": 197,
+    "validation": 22
+  },
+  "threshold": 0.5,
+  "validation": {
+    "macro_f1": 0.6108058608058607,
+    "micro_f1": 0.5925925925925926,
+    "exact_match_accuracy": 0.18181818181818182,
+    "classification_report": {
+      "contusion": {
+        "precision": 0.7777777777777778,
+        "recall": 0.5833333333333334,
+        "f1-score": 0.6666666666666666,
+        "support": 12.0
+      },
+      "scratches": {
+        "precision": 0.6153846153846154,
+        "recall": 0.5333333333333333,
+        "f1-score": 0.5714285714285714,
+        "support": 15.0
+      },
+      "crack": {
+        "precision": 0.6666666666666666,
+        "recall": 0.6666666666666666,
+        "f1-score": 0.6666666666666666,
+        "support": 3.0
+      },
+      "spot": {
+        "precision": 0.6363636363636364,
+        "recall": 0.4666666666666667,
+        "f1-score": 0.5384615384615384,
+        "support": 15.0
+      },
+      "micro avg": {
+        "precision": 0.6666666666666666,
+        "recall": 0.5333333333333333,
+        "f1-score": 0.5925925925925926,
+        "support": 45.0
+      },
+      "macro avg": {
+        "precision": 0.674048174048174,
+        "recall": 0.5625,
+        "f1-score": 0.6108058608058607,
+        "support": 45.0
+      },
+      "weighted avg": {
+        "precision": 0.6691012691012691,
+        "recall": 0.5333333333333333,
+        "f1-score": 0.5921855921855921,
+        "support": 45.0
+      },
+      "samples avg": {
+        "precision": 0.6515151515151515,
+        "recall": 0.5454545454545454,
+        "f1-score": 0.543939393939394,
+        "support": 45.0
+      }
+    }
+  },
+  "source_commit": "4b5daa92929934f30b1155033c3ce67b7701960f",
+  "contains_synthetic_data": false,
+  "limitations": [
+    "Only 22 validation pairs; uncertainty is high.",
+    "Noncommercial license.",
+    "Baseline is not an airworthiness or maintenance-release system."
+  ]
+}
