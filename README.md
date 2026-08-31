@@ -4,15 +4,40 @@
 
 [![CI](https://github.com/triasha72/AeroSynth-Eval/actions/workflows/ci.yml/badge.svg)](https://github.com/triasha72/AeroSynth-Eval/actions/workflows/ci.yml)
 
-AeroSynth-Eval is an independent research and engineering project exploring how
-visual-language models can evaluate synthetic aerospace inspection imagery against
-explicit, human-reviewable rubrics.
+AeroSynth-Eval looks at a difficult computer-vision problem: aircraft inspection
+images are scarce, but a synthetic image is useful only if it helps on real
+inspection photographs. This repository tests that idea instead of assuming it.
 
 ## Research question
 
-Can an evaluator determine whether a generated aircraft-exterior inspection image
-matches its requested context and condition, while identifying when the image should
-be rejected or escalated for human review?
+Can a model recognize the requested aircraft region and visible condition, and
+can it spot cases that should be rejected or reviewed by a person?
+
+The real-image benchmark uses the public AGDD aircraft glass-canopy dataset.
+Generated images appear only as clearly marked controls or training
+augmentation. In the latest ten-seed experiment, mixed training improved average
+macro F1 but reduced crack recall. That is an interesting trade-off, not a safety
+win, and the roadmap reflects it.
+
+## Project story
+
+**Situation.** Real aircraft inspection images are difficult to collect, which
+makes synthetic augmentation attractive. The risk is that generated images make
+an average metric look better while weakening detection of an important defect.
+
+**Task.** I set up a controlled test of whether synthetic data actually helps on
+untouched real aircraft images.
+
+**Action.** I audited the public AGDD canopy dataset, kept its 22-pair validation
+set protected, and compared real-only, synthetic-only, and mixed training under
+the same sample budget across ten seeds. I reported macro F1 and crack recall
+separately and kept the VLM and human-rating work behind their own evidence
+boundaries.
+
+**Result.** Mixed training improved mean macro F1 from `0.3881` to `0.4419`, but
+mean crack recall fell from `0.4000` to `0.3167`. I did not call that a win. The
+experiment narrowed the next question to augmentation that helps overall
+classification without sacrificing the protected defect metric.
 
 ## Scope
 
@@ -23,7 +48,7 @@ The v0.1 rubric evaluates:
 - visual quality, including focus, lighting, framing, glare, and occlusion;
 - suitability for a non-operational inspection-data workflow.
 
-All examples in this project must use public, synthetic, or self-generated data only.
+All examples in this project must use public, generated, or self-created data.
 
 ## Safety and limitations
 

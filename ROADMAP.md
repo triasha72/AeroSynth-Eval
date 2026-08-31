@@ -1,31 +1,39 @@
-# AeroSynth-Eval evidence roadmap
+# AeroSynth-Eval: the next useful steps
 
-[Project overview and measured results](README.md)
+[Read the project overview and measured results](README.md)
 
-## Implemented engineering foundation
+The repository can now run a controlled comparison of real-only,
+synthetic-only, and mixed training against untouched public AGDD images. Ten
+matched seeds showed a genuine trade-off: mixed training raised mean macro F1
+from `0.3881` to `0.4419`, while mean crack recall fell from `0.4000` to
+`0.3167`.
 
-- [x] frozen 48-scenario procedural benchmark and protected split
-- [x] request-bound evaluator contracts and rejected-output provenance
-- [x] shared-session MLX-VLM development batch
-- [x] shared-session 4-bit Transformers batch for a free Kaggle P100
-- [x] first measured Kaggle/P100 development batch frozen with bounded failure evidence
-- [x] bounded retries and typed execution failures
-- [x] deterministic sharding, cache keys, checkpoints, and strict reduction primitives
-- [x] human annotation, agreement, adjudication, alignment, and calibration contracts
-- [x] leakage-controlled preference-adaptation and experiment-selection contracts
+That result changes the plan. The next goal is not to generate more images. It
+is to understand why augmentation helps the average while hurting the defect
+that matters most.
 
-## Evidence still requiring real execution or people
+## Real-image work
 
-- [ ] collect two genuine independent human-rating files
-- [ ] adjudicate genuine disagreement cases
-- [ ] evaluate VLM outputs against the adjudicated development reference
-- [ ] run calibration and human-alignment reports
-- [ ] execute preference adaptation and compare it on untouched held-out data
-- [ ] publish limitations, seeds, revisions, hashes, variance, and regressions
+- Choose augmentation settings on development data with crack recall protected,
+  then evaluate once on the held-out AGDD pairs.
+- Inspect errors by lighting pair and condition rather than relying on one
+  average score.
+- Find a second public aircraft inspection dataset with a compatible license and
+  label space. Cross-dataset testing is needed before claiming transfer.
 
-The first measured P100 batch attempted all 12 development cases in one model
-session. Eight responses passed the strict schema and four JSON failures were
-retained in `reports/kaggle_vlm_batch_v0_1.json`. This closes the execution
-gap, but it does not establish evaluator accuracy or human alignment.
+## Human and VLM work
 
-Software fixtures and CI results cannot satisfy the remaining evidence gates.
+Two people still need to rate the blinded image set independently. Their
+agreement and adjudicated labels will provide the reference needed to evaluate
+the visual-language model. Only then does it make sense to report calibration or
+human alignment.
+
+The execution tools for local and Kaggle VLM batches are already present, and
+failed responses are retained. They prove that the pipeline runs; they do not
+prove evaluator quality.
+
+## Boundary that will remain
+
+This is a dataset-quality research tool, not an airworthiness, maintenance
+release, or defect-diagnosis system. A model change must improve performance on
+real held-out images without sacrificing a protected defect-recall measure.
