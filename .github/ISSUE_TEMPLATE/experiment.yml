@@ -1,0 +1,27 @@
+name: Inspection evaluation proposal
+description: Plan a real-image, augmentation, human, or VLM comparison.
+title: "experiment: "
+labels: ["experiment"]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: Question and practical decision
+    validations: {required: true}
+  - type: textarea
+    id: source
+    attributes:
+      label: Real and generated data boundary
+      description: Name sources, licenses, splits, and any generated augmentation.
+    validations: {required: true}
+  - type: textarea
+    id: protected
+    attributes:
+      label: Protected measures
+      description: Include defect recall, seed variation, human agreement, or schema failure rate as appropriate.
+    validations: {required: true}
+  - type: textarea
+    id: review
+    attributes:
+      label: Human review and stopping rule
+    validations: {required: true}
