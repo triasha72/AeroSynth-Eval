@@ -59,3 +59,23 @@ and macro F1 is below the frozen 0.80 threshold. Exact-match accuracy is 4/22;
 its Wilson 95% interval is recorded to expose the uncertainty hidden by the
 point estimate. CI regenerates `reports/agdd_release_assessment_v1.json` and
 will fail if the evidence and release decision diverge.
+
+## Procedural-to-real transfer result
+
+A controlled 10-seed low-data experiment compares equal-sized crack classifiers
+trained on real AGDD images, procedural images, or a 50/50 mixture. Every
+treatment is evaluated on the same untouched 44 real AGDD validation images
+(22 paired cases, only six crack-positive images).
+
+| Training treatment | Macro F1 mean ± SD | Crack recall mean ± SD |
+|---|---:|---:|
+| Real only | 0.3881 ± 0.0977 | 0.4000 ± 0.2854 |
+| Procedural-only control | 0.2567 ± 0.1765 | 0.6000 ± 0.5164 |
+| Real + procedural | 0.4419 ± 0.0780 | 0.3167 ± 0.2144 |
+
+The mixture improved overall binary macro F1 but reduced crack recall. The
+procedural-only control was highly unstable. Therefore this experiment does not
+support a claim that synthetic augmentation improves safety-relevant crack
+detection. It demonstrates the intended synthetic-to-real measurement boundary
+and identifies the need for a larger real protected test set. Full per-seed
+evidence is in `reports/agdd_transfer_experiment_v1.json`.

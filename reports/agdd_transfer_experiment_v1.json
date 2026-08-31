@@ -1,0 +1,222 @@
+{
+  "schema_version": "1.0",
+  "evidence_label": "agdd_real_procedural_transfer_experiment",
+  "real_dataset": "AGDD",
+  "real_dataset_commit": "4b5daa92929934f30b1155033c3ce67b7701960f",
+  "protected_real_validation": {
+    "images": 44,
+    "paired_cases": 22,
+    "crack_positive_images": 6
+  },
+  "equal_training_rows_per_treatment": 18,
+  "seeds": 10,
+  "aggregate": {
+    "real_only": {
+      "macro_f1": {
+        "mean": 0.3881262868734109,
+        "sample_standard_deviation": 0.09766523533402927
+      },
+      "crack_recall": {
+        "mean": 0.39999999999999997,
+        "sample_standard_deviation": 0.2854496128592251
+      }
+    },
+    "synthetic_only_control": {
+      "macro_f1": {
+        "mean": 0.25670340258958146,
+        "sample_standard_deviation": 0.17649369434752707
+      },
+      "crack_recall": {
+        "mean": 0.6,
+        "sample_standard_deviation": 0.5163977794943222
+      }
+    },
+    "real_plus_synthetic": {
+      "macro_f1": {
+        "mean": 0.44186026466934064,
+        "sample_standard_deviation": 0.07801192355482826
+      },
+      "crack_recall": {
+        "mean": 0.31666666666666665,
+        "sample_standard_deviation": 0.2144473229513198
+      }
+    }
+  },
+  "per_seed": [
+    {
+      "seed": 0,
+      "treatments": {
+        "real_only": {
+          "macro_f1": 0.3595687331536388,
+          "crack_recall": 0.6666666666666666
+        },
+        "synthetic_only_control": {
+          "macro_f1": 0.12,
+          "crack_recall": 1.0
+        },
+        "real_plus_synthetic": {
+          "macro_f1": 0.429443173150267,
+          "crack_recall": 0.16666666666666666
+        }
+      }
+    },
+    {
+      "seed": 1,
+      "treatments": {
+        "real_only": {
+          "macro_f1": 0.30526315789473685,
+          "crack_recall": 0.6666666666666666
+        },
+        "synthetic_only_control": {
+          "macro_f1": 0.12,
+          "crack_recall": 1.0
+        },
+        "real_plus_synthetic": {
+          "macro_f1": 0.4540942928039702,
+          "crack_recall": 0.5
+        }
+      }
+    },
+    {
+      "seed": 2,
+      "treatments": {
+        "real_only": {
+          "macro_f1": 0.4965675057208238,
+          "crack_recall": 0.3333333333333333
+        },
+        "synthetic_only_control": {
+          "macro_f1": 0.12,
+          "crack_recall": 1.0
+        },
+        "real_plus_synthetic": {
+          "macro_f1": 0.4965675057208238,
+          "crack_recall": 0.3333333333333333
+        }
+      }
+    },
+    {
+      "seed": 3,
+      "treatments": {
+        "real_only": {
+          "macro_f1": 0.3125,
+          "crack_recall": 0.8333333333333334
+        },
+        "synthetic_only_control": {
+          "macro_f1": 0.4567901234567901,
+          "crack_recall": 0.0
+        },
+        "real_plus_synthetic": {
+          "macro_f1": 0.5668073136427567,
+          "crack_recall": 0.16666666666666666
+        }
+      }
+    },
+    {
+      "seed": 4,
+      "treatments": {
+        "real_only": {
+          "macro_f1": 0.42105263157894735,
+          "crack_recall": 0.0
+        },
+        "synthetic_only_control": {
+          "macro_f1": 0.12,
+          "crack_recall": 1.0
+        },
+        "real_plus_synthetic": {
+          "macro_f1": 0.38193979933110367,
+          "crack_recall": 0.16666666666666666
+        }
+      }
+    },
+    {
+      "seed": 5,
+      "treatments": {
+        "real_only": {
+          "macro_f1": 0.44126984126984126,
+          "crack_recall": 0.16666666666666666
+        },
+        "synthetic_only_control": {
+          "macro_f1": 0.12,
+          "crack_recall": 1.0
+        },
+        "real_plus_synthetic": {
+          "macro_f1": 0.5035897435897436,
+          "crack_recall": 0.16666666666666666
+        }
+      }
+    },
+    {
+      "seed": 6,
+      "treatments": {
+        "real_only": {
+          "macro_f1": 0.23311546840958605,
+          "crack_recall": 0.16666666666666666
+        },
+        "synthetic_only_control": {
+          "macro_f1": 0.4634146341463415,
+          "crack_recall": 0.0
+        },
+        "real_plus_synthetic": {
+          "macro_f1": 0.4567901234567901,
+          "crack_recall": 0.0
+        }
+      }
+    },
+    {
+      "seed": 7,
+      "treatments": {
+        "real_only": {
+          "macro_f1": 0.38554948391013966,
+          "crack_recall": 0.3333333333333333
+        },
+        "synthetic_only_control": {
+          "macro_f1": 0.4634146341463415,
+          "crack_recall": 0.0
+        },
+        "real_plus_synthetic": {
+          "macro_f1": 0.40853302162478083,
+          "crack_recall": 0.5
+        }
+      }
+    },
+    {
+      "seed": 8,
+      "treatments": {
+        "real_only": {
+          "macro_f1": 0.5668073136427567,
+          "crack_recall": 0.16666666666666666
+        },
+        "synthetic_only_control": {
+          "macro_f1": 0.12,
+          "crack_recall": 1.0
+        },
+        "real_plus_synthetic": {
+          "macro_f1": 0.44367816091954027,
+          "crack_recall": 0.6666666666666666
+        }
+      }
+    },
+    {
+      "seed": 9,
+      "treatments": {
+        "real_only": {
+          "macro_f1": 0.3595687331536388,
+          "crack_recall": 0.6666666666666666
+        },
+        "synthetic_only_control": {
+          "macro_f1": 0.4634146341463415,
+          "crack_recall": 0.0
+        },
+        "real_plus_synthetic": {
+          "macro_f1": 0.27715951245363013,
+          "crack_recall": 0.5
+        }
+      }
+    }
+  ],
+  "limitations": [
+    "Only crack labels overlap between the procedural and AGDD taxonomies.",
+    "The protected real validation set has only six positive crack images.",
+    "Synthetic-only is a transfer control, not real-data model evidence."
+  ]
+}
