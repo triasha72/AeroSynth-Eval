@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0",
+  "policy": "agdd-operational-release-v1",
+  "decision": "rejected",
+  "checks": {
+    "commercially_usable_license": {
+      "value": "CC BY-NC-SA 4.0",
+      "required": "commercial use permitted",
+      "passed": false
+    },
+    "minimum_validation_pairs": {
+      "value": 22,
+      "minimum": 200,
+      "passed": false
+    },
+    "minimum_macro_f1": {
+      "value": 0.6108058608058607,
+      "minimum": 0.8,
+      "passed": false
+    },
+    "source_manifest_present": {
+      "value": "fa43094cb00b42808c522d321b69c7ca64695a39a49a0a18047282736df096b8",
+      "passed": true
+    }
+  },
+  "uncertainty": {
+    "exact_match_successes": 4,
+    "validation_pairs": 22,
+    "exact_match_wilson_95": {
+      "lower": 0.07306766024105121,
+      "upper": 0.38517021976637866
+    }
+  },
+  "permitted_use": "noncommercial research evaluation only"
+}

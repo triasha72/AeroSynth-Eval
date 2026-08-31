@@ -50,3 +50,12 @@ python scripts/train_agdd_real_baseline.py \
 
 Commercial use requires separate licensing review because AGDD is
 noncommercial and share-alike.
+
+## Operational release decision
+
+The tracked operational policy rejects this baseline. AGDD does not permit
+commercial use, the validation split has 22 pairs rather than the required 200,
+and macro F1 is below the frozen 0.80 threshold. Exact-match accuracy is 4/22;
+its Wilson 95% interval is recorded to expose the uncertainty hidden by the
+point estimate. CI regenerates `reports/agdd_release_assessment_v1.json` and
+will fail if the evidence and release decision diverge.

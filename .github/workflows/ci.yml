@@ -38,6 +38,14 @@ jobs:
       - name: Run tests
         run: python -m pytest -q
 
+      - name: Revalidate real-image operational release decision
+        run: |
+          python scripts/assess_agdd_release.py \
+            reports/agdd_real_baseline_v1.json reports/agdd_audit.json \
+            /tmp/agdd_release_assessment.json
+          diff -u reports/agdd_release_assessment_v1.json \
+            /tmp/agdd_release_assessment.json
+
       - name: Validate bundled manifest
         run: aerosynth-eval validate-manifest data/examples/v0_1_manifest.jsonl
 
