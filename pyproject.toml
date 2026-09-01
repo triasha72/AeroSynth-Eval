@@ -50,6 +50,7 @@ aerosynth-eval = "aerosynth_eval.cli:app"
 where = ["src"]
 
 [tool.pytest.ini_options]
+pythonpath = ["."]
 testpaths = ["tests"]
 addopts = "-q"
 
