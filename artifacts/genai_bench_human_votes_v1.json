@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0",
+  "dataset_id": "TIGER-Lab/GenAI-Bench",
+  "source_split": "image_generation/test_v1",
+  "dataset_license": "CC-BY-4.0",
+  "annotation_type": "human_pairwise_preference_votes",
+  "source_sha256": "9cba9d758a4133a249128e02806d90be152d3324a2e510943f7fb160990b18a5",
+  "manifest_sha256": "46e9ff12e81262b4f1a6fd25d99f86d27c50e226199186fe39c3697951658ea8",
+  "record_count": 1735,
+  "train_count": 1246,
+  "validation_count": 254,
+  "heldout_count": 235,
+  "task_counts": {
+    "image_generation": 1735
+  },
+  "label_counts": {
+    "b_preferred": 663,
+    "a_preferred": 643,
+    "tie_bad": 273,
+    "tie_good": 156
+  },
+  "contains_prompts_or_images": false,
+  "limitations": [
+    "Human preferences concern generated-image quality, not aircraft inspection correctness.",
+    "The deterministic partitions support evaluator development but do not create new human votes."
+  ]
+}

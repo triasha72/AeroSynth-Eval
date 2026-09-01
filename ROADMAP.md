@@ -23,6 +23,12 @@ that matters most.
 
 ## Human and VLM work
 
+The public GenAI-Bench image-generation split is now materialized: 1,735 real
+human preference votes, with prompt-grouped train, validation, and held-out
+partitions and a checksummed text-free artifact. The next compute step is to
+run the frozen VLM judge on the 235 held-out pairs and report agreement, order
+bias, invalid-response rate, latency, and cost without tuning on that partition.
+
 Two people still need to rate the blinded image set independently. Their
 agreement and adjudicated labels will provide the reference needed to evaluate
 the visual-language model. Only then does it make sense to report calibration or

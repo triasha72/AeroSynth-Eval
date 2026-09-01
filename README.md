@@ -86,6 +86,20 @@ test assets—not operational inspection imagery or physical simulations.
 The [project notes](docs/) state the data, compute, and human-review gates for
 each layer. A merged implementation is not treated as a measured evaluator win.
 
+### Public human-preference evidence
+
+The pinned GenAI-Bench image-generation `test_v1` parquet has now been
+materialized through the real adapter. It contains 1,735 human pairwise votes
+and 3,470 paired images. Prompt-group hashing produces 1,246 training, 254
+validation, and 235 held-out examples without placing related pairs in
+different partitions. The text-free summary and source checksum are in
+`artifacts/genai_bench_human_votes_v1.json`; prompts and images remain outside
+Git under the source's CC-BY-4.0 terms.
+
+This closes the public human-vote ingestion gap for general generated-image
+judging. It does not establish aircraft-inspection correctness or replace two
+independent raters on the blinded aerospace development set.
+
 ## Benchmark foundation
 
 The bundled manifest at `data/examples/v0_1_manifest.jsonl` contains six synthetic
