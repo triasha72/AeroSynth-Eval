@@ -100,6 +100,13 @@ This closes the public human-vote ingestion gap for general generated-image
 judging. It does not establish aircraft-inspection correctness or replace two
 independent raters on the blinded aerospace development set.
 
+The transfer release gate now protects crack recall explicitly. Although mixed
+training improved mean macro F1 by `0.0537`, it reduced crack recall by `0.0833`,
+outside the allowed `0.05` non-inferiority margin. The 44-image real evaluation
+set also misses the 200-image minimum, and independent aerospace review is not
+complete. The checked-in decision therefore remains `blocked` in
+`reports/agdd_transfer_release_v1.json`.
+
 ## Benchmark foundation
 
 The bundled manifest at `data/examples/v0_1_manifest.jsonl` contains six synthetic

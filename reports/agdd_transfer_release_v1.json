@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0",
+  "policy": "agdd-transfer-release-v1",
+  "decision": "blocked",
+  "checks": {
+    "minimum_real_test_images": {
+      "value": 44,
+      "minimum": 200,
+      "passed": false
+    },
+    "macro_f1_improvement": {
+      "value": 0.053733977795929755,
+      "minimum": 0.0,
+      "passed": true
+    },
+    "protected_crack_recall_noninferiority": {
+      "value": -0.08333333333333331,
+      "minimum": -0.05,
+      "passed": false
+    },
+    "independent_human_review_size": {
+      "value": null,
+      "minimum": 100,
+      "passed": false
+    },
+    "independent_human_agreement": {
+      "value": null,
+      "minimum": 0.8,
+      "passed": false
+    }
+  },
+  "boundary": "research transfer evidence only; never an airworthiness decision"
+}

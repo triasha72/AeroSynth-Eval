@@ -38,6 +38,11 @@ The execution tools for local and Kaggle VLM batches are already present, and
 failed responses are retained. They prove that the pipeline runs; they do not
 prove evaluator quality.
 
+The combined transfer gate is now executable. It requires a larger real test
+set, a macro-F1 improvement, no material crack-recall regression, and genuine
+independent human alignment. The current mixed model is blocked on the real
+sample-size and crack-recall checks.
+
 ## Boundary that will remain
 
 This is a dataset-quality research tool, not an airworthiness, maintenance
