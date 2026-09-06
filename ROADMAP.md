@@ -23,6 +23,9 @@ that matters most.
 
 ## Human and VLM work
 
+- [x] add a no-budget volunteer recruitment guide and reproducible 12-case pilot
+- [ ] collect two independent pilot submissions from real volunteers
+
 The public GenAI-Bench image-generation split is now materialized: 1,735 real
 human preference votes, with prompt-grouped train, validation, and held-out
 partitions and a checksummed text-free artifact. The next compute step is to

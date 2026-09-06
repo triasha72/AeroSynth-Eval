@@ -146,6 +146,11 @@ or reviewing imagery.
 
 ## Human annotation protocol
 
+The [volunteer study guide](docs/UNPAID_REVIEW_STUDY.md) and pilot builder create
+two separate blank 12-case development files. This allows an unpaid rubric
+pilot while protected-test claims remain blocked until genuine independent
+reviews exist.
+
 The development-only queue at
 `data/annotations/v0_1_development_annotation_queue.csv` selects 12 balanced
 generated assets for independent human rating. It intentionally excludes all
