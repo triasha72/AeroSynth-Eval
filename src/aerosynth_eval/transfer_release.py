@@ -19,20 +19,28 @@ def assess_transfer_release(
     agreement = None if human_alignment is None else human_alignment.get("human_agreement")
     checks = {
         "minimum_real_test_images": {
-            "value": image_count, "minimum": 200, "passed": image_count >= 200,
+            "value": image_count,
+            "minimum": 200,
+            "passed": image_count >= 200,
         },
         "macro_f1_improvement": {
-            "value": macro_gain, "minimum": 0.0, "passed": macro_gain > 0,
+            "value": macro_gain,
+            "minimum": 0.0,
+            "passed": macro_gain > 0,
         },
         "protected_crack_recall_noninferiority": {
-            "value": crack_delta, "minimum": -0.05, "passed": crack_delta >= -0.05,
+            "value": crack_delta,
+            "minimum": -0.05,
+            "passed": crack_delta >= -0.05,
         },
         "independent_human_review_size": {
-            "value": reviewed, "minimum": 100,
+            "value": reviewed,
+            "minimum": 100,
             "passed": reviewed is not None and reviewed >= 100,
         },
         "independent_human_agreement": {
-            "value": agreement, "minimum": 0.8,
+            "value": agreement,
+            "minimum": 0.8,
             "passed": agreement is not None and agreement >= 0.8,
         },
     }
