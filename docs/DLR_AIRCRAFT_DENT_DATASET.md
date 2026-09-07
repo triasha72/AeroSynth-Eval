@@ -12,10 +12,24 @@ PYTHONPATH=src python scripts/audit_dlr_dent_release.py \
   --output reports/dlr_aircraft_dent_release_v1.json
 ```
 
-Then download the archive using the URL recorded in that receipt, extract it
-outside Git, and audit its directory layout, image count, annotation count,
-duplicate images, and group split before training. No train/test split is
-assumed from the Zenodo metadata alone.
+Then download the archive using the URL recorded in that receipt. The command
+is resumable and asks for an explicit confirmation because the archive is
+large. It checks that at least 12 GiB of local space is available.
+
+```bash
+PYTHONPATH=src python scripts/download_dlr_dent_archive.py \
+  --url "https://zenodo.org/api/records/17900121/files/plane-10.27-fulldata-split.zip/content" \
+  --confirm-large-download
+PYTHONPATH=src python scripts/inspect_dlr_dent_archive.py \
+  --archive data/external/dlr-aircraft-dent/plane-10.27-fulldata-split.zip \
+  --output reports/dlr_aircraft_dent_archive_inventory_v1.json
+```
+
+The inventory reads ZIP metadata only. It records directory layout, image and
+annotation member counts, and safe sample paths without extracting or committing
+the released images. Use it to map annotations to images, check duplicates, and
+define a group-aware train/validation/test split. No split is assumed from the
+Zenodo metadata alone.
 
 This dataset can address the 200-image real-test-size gap. It does not yet close
 the gap: a completed experiment still needs five evaluator-selected subsets,
