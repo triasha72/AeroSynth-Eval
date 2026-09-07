@@ -19,11 +19,13 @@ augmentation. In the latest ten-seed experiment, mixed training improved average
 macro F1 but reduced crack recall. That is an interesting trade-off, not a safety
 win, and the roadmap reflects it.
 
-The next real-data track is DLR's public aircraft-dent release: more than 6,000
-labelled real images under MIT. Its 5.7 GB archive is deliberately not bundled
-with the repository. A checked provenance receipt and an extraction/audit plan
-are available in [the dataset note](docs/DLR_AIRCRAFT_DENT_DATASET.md). No DLR
-training result is claimed until its split and labels have been audited.
+The DLR aircraft-dent track adds 3,224 real inspection images from a public MIT
+release. Its 5.7 GB archive is deliberately not bundled with the repository.
+The supplied folders mixed nearby capture sessions, so this project rebuilt a
+session-held-out split before training. The first 645-image test run found high
+dent recall (`0.9777`) but too many false alarms and only `0.5969` ROC-AUC. That
+is an honest baseline, not a maintenance claim. Details and the reproducible
+command are in [the dataset note](docs/DLR_AIRCRAFT_DENT_DATASET.md).
 
 ## Project story
 

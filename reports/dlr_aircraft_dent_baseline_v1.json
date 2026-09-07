@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.0",
+  "dataset": "DLR aircraft-dent dataset (Zenodo 10.5281/zenodo.17900121)",
+  "dataset_license": "MIT",
+  "task": "dent-presence triage from inspection images",
+  "model": "32x32 grayscale pixels + balanced logistic regression",
+  "contains_synthetic_data": false,
+  "source_split_policy": "release folders were not used for scoring; records were re-split by chronological capture session",
+  "capture_session_leakage_in_release": {
+    "gap_seconds": 300,
+    "capture_sessions": 43,
+    "cross_source_split_sessions": 40
+  },
+  "group_gap_seconds": 300,
+  "rows": {
+    "train": 2087,
+    "validation": 492,
+    "test": 645
+  },
+  "positive_rows": {
+    "train": 883,
+    "validation": 208,
+    "test": 269
+  },
+  "threshold_selected_on_validation": 0.05,
+  "validation": {
+    "precision": 0.42764578833693306,
+    "recall": 0.9519230769230769,
+    "f1": 0.5901639344262295,
+    "positive_rate": 0.42276422764227645,
+    "confusion_matrix": [
+      [
+        19,
+        265
+      ],
+      [
+        10,
+        198
+      ]
+    ],
+    "roc_auc": 0.4048787919826652
+  },
+  "test": {
+    "precision": 0.43399339933993397,
+    "recall": 0.9776951672862454,
+    "f1": 0.6011428571428571,
+    "positive_rate": 0.4170542635658915,
+    "confusion_matrix": [
+      [
+        33,
+        343
+      ],
+      [
+        6,
+        263
+      ]
+    ],
+    "roc_auc": 0.5969014474412718
+  },
+  "limitations": [
+    "This is a dent-presence triage baseline, not a bounding-box detector or maintenance decision system.",
+    "DLR labels are optical-tracking-derived; they are not independent human judgments of generated images.",
+    "The session boundary is inferred from timestamp gaps and should be reviewed against acquisition logs before deployment claims."
+  ]
+}

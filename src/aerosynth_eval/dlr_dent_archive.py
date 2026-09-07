@@ -20,6 +20,8 @@ def inspect_archive(path: str) -> dict[str, object]:
     suffixes: Counter[str] = Counter()
     top_level: Counter[str] = Counter()
     image_paths: list[str] = []
+    inspection_image_paths: list[str] = []
+    mask_paths: list[str] = []
     annotation_paths: list[str] = []
 
     with ZipFile(path) as archive:
@@ -31,19 +33,28 @@ def inspect_archive(path: str) -> dict[str, object]:
             top_level[member.parts[0] if member.parts else "[root]"] += 1
             if suffix in IMAGE_SUFFIXES:
                 image_paths.append(entry.filename)
+                if len(member.parts) >= 3 and member.parts[-2] == "images":
+                    inspection_image_paths.append(entry.filename)
+                elif len(member.parts) >= 3 and member.parts[-2].startswith("masks"):
+                    mask_paths.append(entry.filename)
             if suffix in ANNOTATION_SUFFIXES:
                 annotation_paths.append(entry.filename)
 
         return {
-            "schema_version": "1.0",
+            "schema_version": "1.1",
             "archive_name": PurePosixPath(path).name,
             "archive_bytes": sum(entry.file_size for entry in entries),
             "member_count": len(entries),
             "image_member_count": len(image_paths),
+            "inspection_image_member_count": len(inspection_image_paths),
+            "mask_member_count": len(mask_paths),
+            "other_raster_member_count": (
+                len(image_paths) - len(inspection_image_paths) - len(mask_paths)
+            ),
             "annotation_member_count": len(annotation_paths),
             "suffix_counts": dict(sorted(suffixes.items())),
             "top_level_counts": dict(sorted(top_level.items())),
-            "sample_image_members": image_paths[:10],
+            "sample_image_members": inspection_image_paths[:10],
             "sample_annotation_members": annotation_paths[:10],
             "contains_source_images": False,
             "next_step": (

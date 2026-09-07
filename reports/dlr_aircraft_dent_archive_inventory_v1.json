@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.1",
+  "archive_name": "plane-10.27-fulldata-split.zip",
+  "archive_bytes": 6392292320,
+  "member_count": 9304,
+  "image_member_count": 7941,
+  "inspection_image_member_count": 3224,
+  "mask_member_count": 4717,
+  "other_raster_member_count": 0,
+  "annotation_member_count": 1363,
+  "suffix_counts": {
+    ".png": 7941,
+    ".txt": 1363
+  },
+  "top_level_counts": {
+    "plane-10.27-fulldata-split": 9304
+  },
+  "sample_image_members": [
+    "plane-10.27-fulldata-split/train/images/1753107469-image.png",
+    "plane-10.27-fulldata-split/train/images/1753107476-image.png",
+    "plane-10.27-fulldata-split/train/images/1753107579-image.png",
+    "plane-10.27-fulldata-split/train/images/1753107671-image.png",
+    "plane-10.27-fulldata-split/train/images/1753107684-image.png",
+    "plane-10.27-fulldata-split/train/images/1753107761-image.png",
+    "plane-10.27-fulldata-split/train/images/1753107770-image.png",
+    "plane-10.27-fulldata-split/train/images/1753107800-image.png",
+    "plane-10.27-fulldata-split/train/images/1753107881-image.png",
+    "plane-10.27-fulldata-split/train/images/1753107905-image.png"
+  ],
+  "sample_annotation_members": [
+    "plane-10.27-fulldata-split/checksum.txt",
+    "plane-10.27-fulldata-split/train/labels/1753108176-image.txt",
+    "plane-10.27-fulldata-split/train/labels/1753108187-image.txt",
+    "plane-10.27-fulldata-split/train/labels/1753108200-image.txt",
+    "plane-10.27-fulldata-split/train/labels/1753109683-image.txt",
+    "plane-10.27-fulldata-split/train/labels/1753109690-image.txt",
+    "plane-10.27-fulldata-split/train/labels/1753109856-image.txt",
+    "plane-10.27-fulldata-split/train/labels/1753110970-image.txt",
+    "plane-10.27-fulldata-split/train/labels/1753110987-image.txt",
+    "plane-10.27-fulldata-split/train/labels/1753110992-image.txt"
+  ],
+  "contains_source_images": false,
+  "next_step": "Map the released annotation format to a train/validation/test split only after confirming image-to-label joins from this inventory."
+}
