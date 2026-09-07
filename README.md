@@ -56,6 +56,13 @@ This is an independent research prototype. It is not an airworthiness,
 maintenance-release, defect-diagnosis, or certification system. Its outputs support
 research dataset quality review and must not replace qualified human inspection.
 
+## System architecture
+
+The pipeline keeps real evaluation images separate from generated training
+images. Evaluator scores can select synthetic examples, but the final comparison
+always runs on an untouched real split. See [the architecture note](docs/architecture.md)
+for the data flow and release boundaries.
+
 ## What was built and why
 
 The project builds an evaluation path from frozen synthetic scenarios to
