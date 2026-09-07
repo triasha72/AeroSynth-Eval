@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "dataset_id": "DLR aircraft dent detection",
+  "doi": "10.5281/zenodo.17900121",
+  "record_id": "17900121",
+  "license": "MIT",
+  "release_file": {
+    "name": "plane-10.27-fulldata-split.zip",
+    "bytes": 5740757344,
+    "download_url": "https://zenodo.org/api/records/17900121/files/plane-10.27-fulldata-split.zip/content"
+  },
+  "reported_labelled_images": {
+    "minimum": 6000,
+    "source": "release description"
+  },
+  "annotation_method": "optical-tracking-derived dent annotations",
+  "acquisition_status": "metadata_verified_archive_not_downloaded",
+  "contains_source_images": false,
+  "limitations": [
+    "The labels are optical-tracking-derived, not a new human review of generated images.",
+    "The archive layout and final train/test split must be audited after download.",
+    "A metadata receipt is not a downstream-utility result."
+  ],
+  "zenodo_metadata_sha256": "ca850a2d3bda26841735baeb0a48d106f4d57db595faa258799c6b6ce4bc55f8"
+}

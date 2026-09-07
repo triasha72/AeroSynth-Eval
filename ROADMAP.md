@@ -18,8 +18,9 @@ that matters most.
   then evaluate once on the held-out AGDD pairs.
 - Inspect errors by lighting pair and condition rather than relying on one
   average score.
-- Find a second public aircraft inspection dataset with a compatible license and
-  label space. Cross-dataset testing is needed before claiming transfer.
+- [x] Identify and verify DLR's MIT-licensed aircraft-dent release (6,000+ labelled images).
+- [ ] Download and audit the 5.7 GB DLR archive; freeze a group-safe train/test split.
+- [ ] Run five evaluator-selected synthetic subsets against a 200+ image DLR holdout.
 
 ## Human and VLM work
 
