@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "source_archive": "plane-10.27-fulldata-split.zip",
+  "source_data_committed": false,
+  "split_policy": "capture-session group split",
+  "group_gap_seconds": 300,
+  "seed": 42,
+  "rows": {
+    "train": 2087,
+    "val": 492,
+    "test": 645
+  },
+  "positive_rows": {
+    "train": 883,
+    "val": 208,
+    "test": 269
+  },
+  "next_step": "Train a detector using dataset.yaml; keep the test partition untouched."
+}

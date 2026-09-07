@@ -68,7 +68,8 @@ def materialize(archive_path: Path, output: Path, gap_seconds: int, seed: int) -
                 label = output / "labels" / split / f"{record.image_id}.txt"
                 label.write_bytes(archive.read(record.label_member) if record.label_member else b"")
     (output / "dataset.yaml").write_text(
-        "path: .\ntrain: images/train\nval: images/val\ntest: images/test\nnames: [dent]\n",
+        f"path: {output.resolve()}\n"
+        "train: images/train\nval: images/val\ntest: images/test\nnames: [dent]\n",
         encoding="utf-8",
     )
     return {
