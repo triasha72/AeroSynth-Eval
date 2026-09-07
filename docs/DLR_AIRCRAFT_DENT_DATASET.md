@@ -46,6 +46,20 @@ real-data triage result. The first model predicts whether an inspection image
 contains a released dent label. It is deliberately a simple baseline; it does
 not claim to localize dents or approve maintenance work.
 
+For a real bounding-box baseline, make a local YOLO-ready dataset first. This
+keeps capture sessions separated across train, validation, and test and writes
+the source images only under an ignored directory:
+
+```bash
+PYTHONPATH=src python scripts/materialize_dlr_dent_detector.py \
+  --archive data/external/dlr-aircraft-dent/plane-10.27-fulldata-split.zip \
+  --output data/processed/dlr-dent-yolo \
+  --receipt reports/dlr_aircraft_dent_detector_split_v1.json
+```
+
+Use `data/processed/dlr-dent-yolo/dataset.yaml` with a detector training
+runtime. Do not tune on the exported `test` folder.
+
 ## Measured first baseline
 
 The initial run used 2,087 training images, 492 validation images, and 645
