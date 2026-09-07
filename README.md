@@ -107,6 +107,13 @@ set also misses the 200-image minimum, and independent aerospace review is not
 complete. The checked-in decision therefore remains `blocked` in
 `reports/agdd_transfer_release_v1.json`.
 
+The [downstream utility protocol](docs/DOWNSTREAM_UTILITY_PROTOCOL.md) provides
+an alternative to recruiting reviewers. It tests whether evaluator-selected
+synthetic images improve a detector on an untouched real aircraft test set. The
+gate requires five selection experiments, at least 200 real test images, no test
+leakage, positive mean F1 gain, and rank correlation of at least 0.5. AGDD's
+44-image protected split is too small, so no passing result is claimed yet.
+
 ## Benchmark foundation
 
 The bundled manifest at `data/examples/v0_1_manifest.jsonl` contains six synthetic

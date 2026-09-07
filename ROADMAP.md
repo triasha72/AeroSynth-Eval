@@ -25,6 +25,8 @@ that matters most.
 
 - [x] add a no-budget volunteer recruitment guide and reproducible 12-case pilot
 - [ ] collect two independent pilot submissions from real volunteers
+- [x] implement real-test downstream utility as an alternative evidence path
+- [ ] run five frozen selection experiments on a 200+ image real test set
 
 The public GenAI-Bench image-generation split is now materialized: 1,735 real
 human preference votes, with prompt-grouped train, validation, and held-out
