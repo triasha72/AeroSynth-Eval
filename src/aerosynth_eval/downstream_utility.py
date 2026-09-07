@@ -33,7 +33,7 @@ def assess_downstream_utility(artifact: dict[str, Any]) -> dict[str, Any]:
         correlation = float(np.corrcoef(_ranks(scores), _ranks(gains))[0, 1])
     real_images = artifact.get("untouched_real_test_images")
     leakage = artifact.get("real_test_used_for_selection")
-    checks = {
+    checks: dict[str, dict[str, Any]] = {
         "minimum_selection_experiments": {
             "value": len(experiments),
             "minimum": 5,
