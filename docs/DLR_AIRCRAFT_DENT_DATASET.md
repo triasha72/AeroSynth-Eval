@@ -60,6 +60,16 @@ PYTHONPATH=src python scripts/materialize_dlr_dent_detector.py \
 Use `data/processed/dlr-dent-yolo/dataset.yaml` with a detector training
 runtime. Do not tune on the exported `test` folder.
 
+On a GPU-enabled machine with `ultralytics` installed, use the project runner
+to train and save a source-free receipt:
+
+```bash
+PYTHONPATH=src python scripts/train_dlr_yolo_detector.py \
+  --data data/processed/dlr-dent-yolo/dataset.yaml \
+  --output reports/dlr_aircraft_dent_yolo11n_v1.json \
+  --device 0
+```
+
 ## Measured first baseline
 
 The initial run used 2,087 training images, 492 validation images, and 645
