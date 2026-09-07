@@ -19,7 +19,10 @@ that matters most.
 - Inspect errors by lighting pair and condition rather than relying on one
   average score.
 - [x] Identify and verify DLR's MIT-licensed aircraft-dent release (6,000+ labelled images).
-- [ ] Download and audit the 5.7 GB DLR archive; freeze a group-safe train/test split.
+- [x] Download and audit the DLR archive; freeze a capture-session-safe split
+  and publish the 645-image real test baseline. The first pixel baseline is
+  intentionally weak, so the next local step is a bounding-box model using the
+  materialization workflow in `docs/DLR_AIRCRAFT_DENT_DATASET.md`.
 - [ ] Run five evaluator-selected synthetic subsets against a 200+ image DLR holdout.
 
 ## Human and VLM work
