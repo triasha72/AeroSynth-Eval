@@ -292,3 +292,7 @@ GitHub Actions runs formatting, linting, strict type checking, tests, and the
 repository's synthetic smoke validations for pushes and pull requests targeting
 `main`. CI validates software behavior and frozen inputs; it does not convert
 synthetic fixtures into human, model-quality, or operational evidence.
+
+## Implementation update
+
+See [implementation and evidence limits](docs/augmentation-experiment.md).
