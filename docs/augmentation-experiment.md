@@ -24,3 +24,14 @@ criteria require 200 test images and five seeds, improvement over both controls,
 and no more than 0.05 recall loss. These are descriptive criteria, not a significance
 test. A real audited manifest, synthetic image set and uncertainty study are still
 needed before claiming useful augmentation. Generated test fixtures verify code only.
+
+## Paired uncertainty
+
+The runner now retains per-seed test predictions and test IDs and computes paired
+95% acquisition-group bootstrap intervals for selected-minus-real and
+selected-minus-random F1/recall. The same sampled groups are used for each arm and
+seed; seed metrics are averaged within each draw. One-class draws are excluded and
+the valid-draw fraction is reported. Fewer than 90% usable draws flags an unstable
+estimate. These intervals condition on the supplied groups and fitted models, and
+do not establish independence of the source data or account for all training-set
+uncertainty. The descriptive decision gate remains separate from these intervals.

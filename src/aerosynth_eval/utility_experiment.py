@@ -16,6 +16,8 @@ from sklearn.metrics import f1_score, recall_score
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
+from aerosynth_eval.grouped_uncertainty import paired_group_intervals
+
 
 def validate_manifest(rows: list[dict], root: Path) -> dict:
     if not rows:
@@ -79,6 +81,7 @@ def run_experiment(
         :budget
     ]
     results = []
+    test_predictions = {}
     for seed in seeds:
         random = np.random.default_rng(seed).choice(synthetic, budget, replace=False).tolist()
         for arm, extra in [
@@ -105,6 +108,7 @@ def run_experiment(
                 ),
             )
             predictions = model.predict_proba(x[partitions["test"]])[:, 1] >= threshold
+            test_predictions.setdefault(arm, []).append(predictions.astype(int).tolist())
             results.append(
                 {
                     "seed": seed,
@@ -146,8 +150,20 @@ def run_experiment(
         "budget": budget,
         "recall_margin": recall_margin,
         "audit": audit,
+        "test_predictions": test_predictions,
+        "test_ids": [rows[i]["id"] for i in partitions["test"]],
+        "paired_uncertainty": {
+            arm: paired_group_intervals(
+                y[partitions["test"]],
+                [rows[i]["group"] for i in partitions["test"]],
+                test_predictions["selected_augmentation"],
+                test_predictions[arm],
+                draws=200,
+            )
+            for arm in ("real_only", "random_augmentation")
+        },
         "limitations": [
-            "Seeds reuse test images; no independent confidence interval claimed.",
+            "Group intervals condition on fitted models; independent confirmation remains pending.",
             "Manifest timing and untouched-test status require an external experiment record.",
             "This is not independent human evaluator validation or a detector mAP result.",
         ],
