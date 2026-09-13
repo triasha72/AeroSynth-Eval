@@ -27,7 +27,7 @@ dent recall (`0.9777`) but too many false alarms and only `0.5969` ROC-AUC. That
 is an honest baseline, not a maintenance claim. Details and the reproducible
 command are in [the dataset note](docs/DLR_AIRCRAFT_DENT_DATASET.md).
 
-## Project story
+## Background
 
 **Situation.** Real aircraft inspection images are difficult to collect, which
 makes synthetic augmentation attractive. The risk is that generated images make
