@@ -51,7 +51,7 @@ def _parse_yolo(payload: str, member: str) -> tuple[tuple[int, float, float, flo
             raise ValueError(f"{member}:{line_number} has a non-numeric YOLO value") from error
         if class_id != 0 or any(value < 0.0 or value > 1.0 for value in coordinates):
             raise ValueError(f"{member}:{line_number} has an invalid normalized dent box")
-        boxes.append((class_id, *coordinates))
+        boxes.append((class_id, coordinates[0], coordinates[1], coordinates[2], coordinates[3]))
     return tuple(boxes)
 
 

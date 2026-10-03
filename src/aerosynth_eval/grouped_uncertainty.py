@@ -1,23 +1,32 @@
 """Paired acquisition-group bootstrap; seeds are averaged, not independent data."""
 
 import numpy as np
-from sklearn.metrics import f1_score, recall_score
+from numpy.typing import ArrayLike
+from sklearn.metrics import f1_score, recall_score  # type: ignore[import-untyped]
 
 
-def paired_group_intervals(labels, groups, selected, control, *, draws=1000, seed=2026):
+def paired_group_intervals(
+    labels: ArrayLike,
+    groups: ArrayLike,
+    selected: ArrayLike,
+    control: ArrayLike,
+    *,
+    draws: int = 1000,
+    seed: int = 2026,
+) -> dict[str, object]:
     y = np.asarray(labels)
-    groups = np.asarray(groups)
+    group_array = np.asarray(groups)
     a, b = np.asarray(selected), np.asarray(control)
     if draws < 100 or a.ndim != 2 or a.shape != b.shape or a.shape[1] != len(y):
         raise ValueError("aligned seed-by-image predictions and at least 100 draws required")
-    if len(groups) != len(y) or set(np.unique(y)) != {0, 1}:
+    if len(group_array) != len(y) or set(np.unique(y)) != {0, 1}:
         raise ValueError("aligned groups and both binary classes required")
-    unique = np.unique(groups)
+    unique = np.unique(group_array)
     if len(unique) < 2:
         raise ValueError("at least two independent acquisition groups required")
-    indices = [np.flatnonzero(groups == g) for g in unique]
+    indices = [np.flatnonzero(group_array == g) for g in unique]
     rng = np.random.default_rng(seed)
-    values = {"macro_f1_difference": [], "defect_recall_difference": []}
+    values: dict[str, list[float]] = {"macro_f1_difference": [], "defect_recall_difference": []}
     for _ in range(draws):
         sample = np.concatenate([indices[i] for i in rng.integers(len(unique), size=len(unique))])
         if len(np.unique(y[sample])) < 2:

@@ -8,21 +8,35 @@ from __future__ import annotations
 
 import hashlib
 from pathlib import Path
+from typing import NotRequired, TypedDict
 
 import numpy as np
 from PIL import Image
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import f1_score, recall_score
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression  # type: ignore[import-untyped]
+from sklearn.metrics import f1_score, recall_score  # type: ignore[import-untyped]
+from sklearn.pipeline import make_pipeline  # type: ignore[import-untyped]
+from sklearn.preprocessing import StandardScaler  # type: ignore[import-untyped]
 
 from aerosynth_eval.grouped_uncertainty import paired_group_intervals
 
 
-def validate_manifest(rows: list[dict], root: Path) -> dict:
+class ManifestRow(TypedDict):
+    id: str
+    group: str
+    kind: str
+    split: str
+    label: int
+    path: str
+    evaluator_score: NotRequired[float]
+    source_group: NotRequired[str | None]
+
+
+def validate_manifest(rows: list[ManifestRow], root: Path) -> dict[str, object]:
     if not rows:
         raise ValueError("manifest is empty")
-    ids, hashes, groups = set(), {}, {}
+    ids: set[str] = set()
+    hashes: dict[str, str] = {}
+    groups: dict[str, str] = {}
     train_groups = {r["group"] for r in rows if r["kind"] == "real" and r["split"] == "train"}
     for row in rows:
         if row["id"] in ids:
@@ -57,8 +71,13 @@ def validate_manifest(rows: list[dict], root: Path) -> dict:
 
 
 def run_experiment(
-    rows: list[dict], root: Path, *, budget: int, seeds: list[int], recall_margin: float = 0.05
-) -> dict:
+    rows: list[ManifestRow],
+    root: Path,
+    *,
+    budget: int,
+    seeds: list[int],
+    recall_margin: float = 0.05,
+) -> dict[str, object]:
     audit = validate_manifest(rows, root)
     synthetic = [i for i, row in enumerate(rows) if row["kind"] == "synthetic"]
     if budget < 1 or budget > len(synthetic) or not seeds or len(set(seeds)) != len(seeds):
@@ -74,14 +93,17 @@ def run_experiment(
     x = np.asarray(features)
     y = np.asarray([r["label"] for r in rows])
     partitions = {
-        s: np.asarray([i for i, r in enumerate(rows) if r["kind"] == "real" and r["split"] == s])
+        s: np.asarray(
+            [i for i, r in enumerate(rows) if r["kind"] == "real" and r["split"] == s],
+            dtype=np.int64,
+        )
         for s in ("train", "val", "test")
     }
     selected = sorted(synthetic, key=lambda i: (-rows[i]["evaluator_score"], rows[i]["id"]))[
         :budget
     ]
     results = []
-    test_predictions = {}
+    test_predictions: dict[str, list[list[int]]] = {}
     for seed in seeds:
         random = np.random.default_rng(seed).choice(synthetic, budget, replace=False).tolist()
         for arm, extra in [
